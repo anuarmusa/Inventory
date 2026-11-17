@@ -9,8 +9,12 @@ The one home whose inventory this system tracks. There is exactly one, and every
 _Avoid_: Account, tenant, organisation
 
 **Device**:
-An Android phone that has installed the app and talks to the household's server. A device is recorded when the installed app first connects, not when the app is downloaded. Devices are tracked; individual people are not.
+An Android phone that has installed the app and talks to the household's server. A device is recorded when it is paired, not when the app is downloaded. Each device has a name the household gives it, such as "Kitchen phone"; devices are tracked, individual people are not. A removed device can no longer sync until it is paired again.
 _Avoid_: User, member, client, download
+
+**Pairing**:
+Connecting a newly installed app to the household's server at home, using a one-time code from the download page, so the phone becomes a device the server trusts. Any phone on the home Wi-Fi can be paired.
+_Avoid_: Registration, login, sign-up, activation
 
 **Location**:
 A named place in the home where things are kept, such as the pantry, freezer, or garage. Locations are a flat list the household defines.
