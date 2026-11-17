@@ -11,6 +11,9 @@ const webRoot = process.env.WEB_ROOT ?? resolve(import.meta.dirname, '../../web/
 // The APK folder: set APK_DIR in production; on the dev PC it is the mobile app's local build output.
 const apkDir = process.env.APK_DIR ?? resolve(import.meta.dirname, '../../mobile/dist');
 
+// Photos: set PHOTOS_DIR in production (under /srv/inventory); on the dev PC a folder beside the repo's server.
+const photosDir = process.env.PHOTOS_DIR ?? resolve(import.meta.dirname, '../photos');
+
 const databaseUrl = process.env.DATABASE_URL;
 if (!databaseUrl) throw new Error('DATABASE_URL is not set');
 const { db } = createDb(databaseUrl);
@@ -20,6 +23,7 @@ const app = buildApp({
   logger: true,
   db,
   apkDir,
+  photosDir,
   publicAddress: process.env.PUBLIC_ADDRESS || undefined,
 });
 await app.listen({ host: '0.0.0.0', port });

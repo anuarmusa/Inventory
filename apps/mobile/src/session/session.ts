@@ -25,6 +25,8 @@ export const KEYS = {
   removed: 'removed',
   /** Supplies ticked off on this phone's Shopping list, as a JSON array of ids. */
   shoppingTicks: 'shopping_ticks',
+  /** Photos taken here and not uploaded yet, as a JSON array of ids. */
+  pendingPhotos: 'pending_photos',
 } as const;
 
 export interface SessionStore {
