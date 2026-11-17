@@ -26,7 +26,7 @@ interface SessionContext {
   /** What the app shows: the server state with this phone's Unsent Actions replayed on top. */
   inventory: Inventory;
   unsent: Action[];
-  record(body: ActionBody): Promise<Action>;
+  record(body: ActionBody, options?: { syncDelayMs?: number }): Promise<Action>;
   editUnsent(id: string, body: ActionBody): Promise<boolean>;
   dropUnsent(id: string): Promise<boolean>;
 }
@@ -101,7 +101,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
       syncState,
       inventory,
       unsent,
-      record: (body) => thenReload(engine.record(body)),
+      record: (body, options) => thenReload(engine.record(body, options)),
       editUnsent: (id, body) => thenReload(engine.editUnsent(id, body)),
       dropUnsent: (id) => thenReload(engine.dropUnsent(id)),
     }),

@@ -151,21 +151,31 @@ export default function Scan() {
 function Choose({ scanned, onBought, onCancel }: { scanned: Scanned; onBought: () => void; onCancel: () => void }) {
   const known = scanned.kind === 'product';
   const title = known ? scanned.supply.name : scanned.kind === 'weighed' ? 'Shop-weighed item' : 'New product';
-  // "I used some" and "Just show me" come with "Scan: I used some, Just show me and the Supply page".
-  const later = () => Alert.alert('Coming next', 'This part of scanning comes in the next update.');
   return (
     <>
       <Text style={ui.title}>{title}</Text>
-      {!known && <Text style={ui.mute}>Not in the inventory yet, so it can only be added.</Text>}
+      {!known && <Text style={ui.mute}>Not in the inventory yet, so it can’t be used. It can be added.</Text>}
       <Pressable style={ui.primary} onPress={onBought}>
         <Text style={ui.primaryText}>I bought some</Text>
       </Pressable>
       {known && (
         <View style={{ flexDirection: 'row', gap: 8 }}>
-          <Pressable style={[ui.secondary, { flex: 1 }]} onPress={later}>
+          <Pressable
+            style={[ui.secondary, { flex: 1 }]}
+            onPress={() => {
+              onCancel();
+              router.push({ pathname: '/scan/use', params: { supplyId: scanned.supply.id } });
+            }}
+          >
             <Text style={ui.secondaryText}>I used some</Text>
           </Pressable>
-          <Pressable style={[ui.secondary, { flex: 1 }]} onPress={later}>
+          <Pressable
+            style={[ui.secondary, { flex: 1 }]}
+            onPress={() => {
+              onCancel();
+              router.push({ pathname: '/supply/[id]', params: { id: scanned.supply.id } });
+            }}
+          >
             <Text style={ui.secondaryText}>Just show me</Text>
           </Pressable>
         </View>

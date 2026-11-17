@@ -15,6 +15,7 @@ export default function NearExpiry() {
           title={`${supply.name} · ${batch.quantity} ${supply.unit}`}
           detail={locationName}
           badge={expiresWhen(daysLeft)}
+          href={{ pathname: '/supply/[id]', params: { id: supply.id } }}
         />
       ))}
     </ListScreen>
