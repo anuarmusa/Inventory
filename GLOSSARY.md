@@ -51,8 +51,12 @@ The manufacturer's code printed on a product's packaging, identifying one exact 
 _Avoid_: QR code, SKU
 
 **Label**:
-A QR code the household prints and sticks on an asset or a location to identify it when scanned.
+A QR code the household prints and sticks on an asset or a location to identify it when scanned. Each label carries its own short code, so it can be reprinted, or replaced by a new one that retires the old.
 _Avoid_: Tag, sticker, barcode
+
+**Blank label**:
+A label printed ahead of time and not yet attached to anything. Scanning it lets someone attach it to a new or existing asset, or to a location, on the spot.
+_Avoid_: Spare label, unused tag
 
 ## Attention
 
