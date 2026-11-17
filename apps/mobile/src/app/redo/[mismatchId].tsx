@@ -1,7 +1,7 @@
 import { router, Stack, useLocalSearchParams } from 'expo-router';
 import { useMemo, useState } from 'react';
 import { Pressable, ScrollView, Text } from 'react-native';
-import { checkItem, redoActions } from '../../checking/mismatches';
+import { checkItem, redoActions } from '@inventory/shared';
 import { emptyBasket, type SupplyChoice } from '../../scan/basket';
 import { SupplyPicker } from '../../scan/pickers';
 import { useSession } from '../../session/SessionProvider';

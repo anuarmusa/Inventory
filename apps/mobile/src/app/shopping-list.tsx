@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
-import { keepTicks, shoppingList } from '../home/lists';
+import { keepTicks, shoppingList } from '@inventory/shared';
 import { ListScreen } from '../home/parts';
 import { KEYS } from '../session/session';
 import { useSession } from '../session/SessionProvider';

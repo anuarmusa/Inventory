@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { expiresWhen, localToday, nearExpiry } from '../home/lists';
+import { expiresWhen, localToday, nearExpiry } from '@inventory/shared';
 import { ListRow, ListScreen } from '../home/parts';
 import { useSession } from '../session/SessionProvider';
 

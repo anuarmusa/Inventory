@@ -1,4 +1,5 @@
-import { type Action, takeOldestFirst } from '@inventory/shared';
+import type { Action } from '../actions.ts';
+import { takeOldestFirst } from '../rules.ts';
 
 /**
  * What the phone shows (spec §4.2): the last server state it pulled, with its own Unsent Actions

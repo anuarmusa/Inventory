@@ -1,7 +1,8 @@
 import type { Action } from '@inventory/shared';
 import type { SyncState } from './engine';
-import { describeAction, editableQuantity, statusLine, withQuantity } from './describe';
-import { inventoryFrom, type SupplyRow } from './inventory';
+import { describeAction } from '@inventory/shared';
+import { editableQuantity, statusLine, withQuantity } from './describe';
+import { inventoryFrom, type SupplyRow } from '@inventory/shared';
 
 const idle: SyncState = { home: true, syncing: false, problem: null, lastSyncedAt: null, app: null };
 

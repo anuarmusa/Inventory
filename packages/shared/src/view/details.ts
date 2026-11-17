@@ -1,6 +1,7 @@
-import { type CalendarDate, isLowStock, isNearExpiry, sortOldestFirst } from '@inventory/shared';
-import { householdNearExpiryDays } from '../home/lists';
-import { type BarcodeRow, type BatchRow, type Inventory, onHand, type SupplyRow } from '../sync/inventory';
+import type { CalendarDate } from '../dates.ts';
+import { isLowStock, isNearExpiry, sortOldestFirst } from '../rules.ts';
+import { householdNearExpiryDays } from './lists.ts';
+import { type BarcodeRow, type BatchRow, type Inventory, onHand, type SupplyRow } from './inventory.ts';
 
 /** The Supply page (spec §6.3): amount on hand, its Batches, its Barcodes, minimum and restock-to. */
 export interface SupplyDetails {

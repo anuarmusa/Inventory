@@ -1,10 +1,10 @@
 import { router, Stack, useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
 import { Pressable, Text, View } from 'react-native';
-import { countActions } from '../../checking/mismatches';
+import { countActions } from '@inventory/shared';
 import { Stepper } from '../../scan/pickers';
 import { useSession } from '../../session/SessionProvider';
-import { onHand } from '../../sync/inventory';
+import { onHand } from '@inventory/shared';
 import { colors, ui } from '../../ui/styles';
 
 /**

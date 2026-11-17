@@ -3,7 +3,7 @@ import { router, Stack } from 'expo-router';
 import { useState } from 'react';
 import { Alert, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { useSession } from '../session/SessionProvider';
-import { canDeleteCategory, canDeleteLocation, liveCategories, liveLocations } from '../things/things';
+import { canDeleteCategory, canDeleteLocation, liveCategories, liveLocations } from '@inventory/shared';
 import { colors, ui } from '../ui/styles';
 
 type Kind = 'location' | 'category';

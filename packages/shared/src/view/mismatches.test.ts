@@ -1,6 +1,7 @@
-import { ActionBody } from '@inventory/shared';
-import { type BatchRow, inventoryFrom, type LoggedActionRow, type MismatchRow, type SupplyRow } from '../sync/inventory';
-import { checked, countActions, fixActions, needsChecking, possibleDuplicates, redoActions } from './mismatches';
+import { describe, expect, it } from 'vitest';
+import { ActionBody } from '../actions.ts';
+import { type BatchRow, inventoryFrom, type LoggedActionRow, type MismatchRow, type SupplyRow } from './inventory.ts';
+import { checked, countActions, fixActions, needsChecking, possibleDuplicates, redoActions } from './mismatches.ts';
 
 const RICE = '11111111-1111-4111-8111-111111111111';
 const MILO = '22222222-2222-4222-8222-222222222222';

@@ -1,44 +1,21 @@
-import { randomUUID } from "expo-crypto";
-import { useMemo, useState } from "react";
-import { Pressable, StyleSheet, Text, TextInput, View } from "react-native";
-import type { Inventory } from "../sync/inventory";
-import { colors, ui } from "../ui/styles";
-import type { Basket, SupplyChoice } from "./basket";
+import { randomUUID } from 'expo-crypto';
+import { useMemo, useState } from 'react';
+import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import type { Inventory } from '@inventory/shared';
+import { colors, ui } from '../ui/styles';
+import type { Basket, SupplyChoice } from './basket';
 
 /** A whole-number stepper. */
-export function Stepper({
-  value,
-  min = 1,
-  unit,
-  onChange,
-}: {
-  value: number;
-  min?: number;
-  unit?: string;
-  onChange(n: number): void;
-}) {
+export function Stepper({ value, min = 1, unit, onChange }: { value: number; min?: number; unit?: string; onChange(n: number): void }) {
   return (
     <View style={styles.stepper}>
-      <Pressable
-        style={styles.stepButton}
-        onPress={() => onChange(Math.max(min, value - 1))}
-        accessibilityLabel="Fewer"
-      >
+      <Pressable style={styles.stepButton} onPress={() => onChange(Math.max(min, value - 1))} accessibilityLabel="Fewer">
         <Text style={styles.stepText}>−</Text>
       </Pressable>
-      <Text
-        style={[
-          ui.body,
-          { minWidth: 70, textAlign: "center", fontWeight: "700" },
-        ]}
-      >
-        {value} {unit ?? ""}
+      <Text style={[ui.body, { minWidth: 70, textAlign: 'center', fontWeight: '700' }]}>
+        {value} {unit ?? ''}
       </Text>
-      <Pressable
-        style={styles.stepButton}
-        onPress={() => onChange(value + 1)}
-        accessibilityLabel="More"
-      >
+      <Pressable style={styles.stepButton} onPress={() => onChange(value + 1)} accessibilityLabel="More">
         <Text style={styles.stepText}>+</Text>
       </Pressable>
     </View>
@@ -46,26 +23,12 @@ export function Stepper({
 }
 
 /** Two choices side by side; the chosen one is filled. */
-export function Toggle<T extends string>({
-  value,
-  options,
-  onChange,
-}: {
-  value: T;
-  options: [T, string][];
-  onChange(v: T): void;
-}) {
+export function Toggle<T extends string>({ value, options, onChange }: { value: T; options: [T, string][]; onChange(v: T): void }) {
   return (
-    <View style={{ flexDirection: "row", gap: 8 }}>
+    <View style={{ flexDirection: 'row', gap: 8 }}>
       {options.map(([v, label]) => (
-        <Pressable
-          key={v}
-          style={[styles.chip, value === v && styles.chipOn]}
-          onPress={() => onChange(v)}
-        >
-          <Text style={{ color: value === v ? "#fff" : colors.ink }}>
-            {label}
-          </Text>
+        <Pressable key={v} style={[styles.chip, value === v && styles.chipOn]} onPress={() => onChange(v)}>
+          <Text style={{ color: value === v ? '#fff' : colors.ink }}>{label}</Text>
         </Pressable>
       ))}
     </View>
@@ -92,11 +55,11 @@ export function SupplyPicker({
   /** False to choose only an existing Supply. */
   allowNew?: boolean;
 }) {
-  const [search, setSearch] = useState("");
+  const [search, setSearch] = useState('');
   const [making, setMaking] = useState(false);
   const [name, setName] = useState(suggestion);
-  const [unit, setUnit] = useState("pieces");
-  const [expires, setExpires] = useState<"yes" | "no">("yes");
+  const [unit, setUnit] = useState('pieces');
+  const [expires, setExpires] = useState<'yes' | 'no'>('yes');
   const [newId] = useState(randomUUID);
 
   const options = useMemo(() => {
@@ -111,12 +74,10 @@ export function SupplyPicker({
       })),
     ];
     const q = search.trim().toLowerCase();
-    return all
-      .filter((s) => !q || s.name.toLowerCase().includes(q))
-      .sort((a, b) => a.name.localeCompare(b.name));
+    return all.filter((s) => !q || s.name.toLowerCase().includes(q)).sort((a, b) => a.name.localeCompare(b.name));
   }, [inventory, basket, search]);
 
-  const chosenId = value && "supplyId" in value ? value.supplyId : null;
+  const chosenId = value && 'supplyId' in value ? value.supplyId : null;
   const makeNew = (n = name, u = unit, e = expires) =>
     onChange(
       n.trim() && u.trim()
@@ -125,7 +86,7 @@ export function SupplyPicker({
               supplyId: newId,
               name: n.trim(),
               unit: u.trim(),
-              expires: e === "yes",
+              expires: e === 'yes',
             },
           }
         : null,
@@ -158,8 +119,8 @@ export function SupplyPicker({
         <Toggle
           value={expires}
           options={[
-            ["yes", "Yes"],
-            ["no", "Doesn’t expire"],
+            ['yes', 'Yes'],
+            ['no', 'Doesn’t expire'],
           ]}
           onChange={(v) => {
             setExpires(v);
@@ -172,9 +133,7 @@ export function SupplyPicker({
             onChange(null);
           }}
         >
-          <Text style={{ color: colors.accent }}>
-            Pick an existing Supply instead
-          </Text>
+          <Text style={{ color: colors.accent }}>Pick an existing Supply instead</Text>
         </Pressable>
       </View>
     );
@@ -182,26 +141,15 @@ export function SupplyPicker({
 
   return (
     <View style={{ gap: 8 }}>
-      <TextInput
-        style={ui.input}
-        value={search}
-        onChangeText={setSearch}
-        placeholder="Search Supplies"
-      />
+      <TextInput style={ui.input} value={search} onChangeText={setSearch} placeholder="Search Supplies" />
       <View style={{ maxHeight: 220 }}>
         {options.slice(0, 8).map((s) => (
-          <Pressable
-            key={s.id}
-            style={[styles.option, chosenId === s.id && styles.optionOn]}
-            onPress={() => onChange({ supplyId: s.id })}
-          >
+          <Pressable key={s.id} style={[styles.option, chosenId === s.id && styles.optionOn]} onPress={() => onChange({ supplyId: s.id })}>
             <Text style={ui.body}>{s.name}</Text>
             <Text style={ui.mute}>{s.unit}</Text>
           </Pressable>
         ))}
-        {options.length === 0 && (
-          <Text style={ui.mute}>No Supply matches.</Text>
-        )}
+        {options.length === 0 && <Text style={ui.mute}>No Supply matches.</Text>}
       </View>
       {allowNew && (
         <Pressable
@@ -236,7 +184,7 @@ export function LocationPicker({
   onPick(locationId: string): void;
   onNew(locationId: string, name: string): void;
 }) {
-  const [name, setName] = useState("");
+  const [name, setName] = useState('');
   const options = [
     ...Object.values(inventory.locations)
       .filter((l) => !l.deletedAt)
@@ -245,38 +193,27 @@ export function LocationPicker({
   ].sort((a, b) => a.name.localeCompare(b.name));
   return (
     <View style={{ gap: 6 }}>
-      <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 6 }}>
+      <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6 }}>
         {options.map((l) => (
-          <Pressable
-            key={l.id}
-            style={[styles.chip, value === l.id && styles.chipOn]}
-            onPress={() => onPick(l.id)}
-          >
-            <Text style={{ color: value === l.id ? "#fff" : colors.ink }}>
+          <Pressable key={l.id} style={[styles.chip, value === l.id && styles.chipOn]} onPress={() => onPick(l.id)}>
+            <Text style={{ color: value === l.id ? '#fff' : colors.ink }}>
               {l.name}
-              {l.id === usualId ? " (usual)" : ""}
+              {l.id === usualId ? ' (usual)' : ''}
             </Text>
           </Pressable>
         ))}
       </View>
-      <View style={{ flexDirection: "row", gap: 6 }}>
-        <TextInput
-          style={[ui.input, { flex: 1, paddingVertical: 8 }]}
-          value={name}
-          onChangeText={setName}
-          placeholder="New Location"
-        />
+      <View style={{ flexDirection: 'row', gap: 6 }}>
+        <TextInput style={[ui.input, { flex: 1, paddingVertical: 8 }]} value={name} onChangeText={setName} placeholder="New Location" />
         <Pressable
-          style={[styles.chip, { justifyContent: "center" }]}
+          style={[styles.chip, { justifyContent: 'center' }]}
           disabled={!name.trim()}
           onPress={() => {
             onNew(randomUUID(), name.trim());
-            setName("");
+            setName('');
           }}
         >
-          <Text style={{ color: name.trim() ? colors.accent : colors.mute }}>
-            Add
-          </Text>
+          <Text style={{ color: name.trim() ? colors.accent : colors.mute }}>Add</Text>
         </Pressable>
       </View>
     </View>
@@ -284,15 +221,15 @@ export function LocationPicker({
 }
 
 export const styles = StyleSheet.create({
-  stepper: { flexDirection: "row", alignItems: "center", gap: 8 },
+  stepper: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   stepButton: {
     width: 44,
     height: 44,
     borderRadius: 22,
     borderWidth: 1,
     borderColor: colors.line,
-    alignItems: "center",
-    justifyContent: "center",
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   stepText: { fontSize: 22, color: colors.ink },
   chip: {
@@ -304,8 +241,8 @@ export const styles = StyleSheet.create({
   },
   chipOn: { backgroundColor: colors.accent, borderColor: colors.accent },
   option: {
-    flexDirection: "row",
-    justifyContent: "space-between",
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     padding: 10,
     borderRadius: 8,
   },

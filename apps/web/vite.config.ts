@@ -7,7 +7,7 @@ export default defineConfig({
   server: {
     port: 5173,
     proxy: Object.fromEntries(
-      ['/health', '/apk', '/pairing', '/devices', '/sync'].map((path) => [path, 'http://localhost:3000']),
+      ['/health', '/apk', '/pairing', '/devices', '/sync', '/web', '/photos'].map((path) => [path, 'http://localhost:3000']),
     ),
   },
 });

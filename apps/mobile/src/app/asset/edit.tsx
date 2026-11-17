@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { Alert, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import { attachLabel } from '../../scan/labels';
 import { useSession } from '../../session/SessionProvider';
-import { assetForm, assetProblems, liveCategories, liveLocations, parseRinggit, saveAsset } from '../../things/things';
+import { assetForm, assetProblems, liveCategories, liveLocations, parseRinggit, saveAsset } from '@inventory/shared';
 import { Choice, DateField, TextField } from '../../ui/form';
 import { colors, ui } from '../../ui/styles';
 

@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { lowStock } from '../home/lists';
+import { lowStock } from '@inventory/shared';
 import { ListRow, ListScreen } from '../home/parts';
 import { useSession } from '../session/SessionProvider';
 

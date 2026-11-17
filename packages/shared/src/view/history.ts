@@ -1,6 +1,6 @@
-import type { Action, ActionBody } from '@inventory/shared';
-import { describeAction } from '../sync/describe';
-import { countedSinceLocally, type Inventory, type LoggedActionRow } from '../sync/inventory';
+import type { Action, ActionBody } from '../actions.ts';
+import { describeAction } from './describe.ts';
+import { countedSinceLocally, type Inventory, type LoggedActionRow } from './inventory.ts';
 
 /**
  * History (spec §5): what happened, newest first. History is never edited: an undone Action stays,

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
-import { formatDate, parseTypedDate } from '../scan/dates';
+import { formatDate, parseTypedDate } from '@inventory/shared';
 import { colors, ui } from './styles';
 
 /** A labelled text box. */

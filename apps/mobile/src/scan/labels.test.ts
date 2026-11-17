@@ -1,5 +1,5 @@
 import { ActionBody } from '@inventory/shared';
-import { inventoryFrom, type LabelRow } from '../sync/inventory';
+import { inventoryFrom, type LabelRow } from '@inventory/shared';
 import { attachLabel, labelOf, whatLabelOpens } from './labels';
 
 const label = (code: string, extra: Partial<LabelRow>): LabelRow => ({ code, assetId: null, locationId: null, retiredAt: null, createdAt: '', ...extra });

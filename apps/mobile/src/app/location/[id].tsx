@@ -1,10 +1,10 @@
 import { router, Stack, useLocalSearchParams } from 'expo-router';
 import { useMemo, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
-import { formatDate } from '../../scan/dates';
+import { formatDate } from '@inventory/shared';
 import { labelOf } from '../../scan/labels';
 import { useSession } from '../../session/SessionProvider';
-import { locationContents } from '../../things/things';
+import { locationContents } from '@inventory/shared';
 import { SyncStatusBar } from '../../ui/SyncStatusBar';
 import { colors, ui } from '../../ui/styles';
 

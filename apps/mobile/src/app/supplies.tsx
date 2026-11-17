@@ -3,7 +3,7 @@ import { useMemo, useState } from 'react';
 import { Pressable, ScrollView, Text, TextInput } from 'react-native';
 import { ListRow } from '../home/parts';
 import { useSession } from '../session/SessionProvider';
-import { supplyList } from '../things/things';
+import { supplyList } from '@inventory/shared';
 import { ui } from '../ui/styles';
 
 /** Every Supply with what's on hand; opens its page. */

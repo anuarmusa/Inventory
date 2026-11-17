@@ -1,7 +1,7 @@
 import type { PushRequest, RedeemRequest } from '@inventory/shared';
 import type { Api, ApiError } from '../api/client';
 import type { SessionStore } from '../session/session';
-import type { PulledChanges } from '../sync/inventory';
+import type { PulledChanges } from '@inventory/shared';
 
 export function memoryStore(initial: Record<string, string> = {}): SessionStore & { data: Record<string, string> } {
   const data = { ...initial };

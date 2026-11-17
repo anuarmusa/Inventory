@@ -1,13 +1,13 @@
 import { router, Stack, useLocalSearchParams } from 'expo-router';
 import { useMemo } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
-import { possibleDuplicates } from '../../checking/mismatches';
-import { history } from '../../history/history';
+import { possibleDuplicates } from '@inventory/shared';
+import { history } from '@inventory/shared';
 import { HistoryList } from '../../history/HistoryList';
-import { localToday } from '../../home/lists';
-import { formatDate } from '../../scan/dates';
+import { localToday } from '@inventory/shared';
+import { formatDate } from '@inventory/shared';
 import { useSession } from '../../session/SessionProvider';
-import { supplyDetails } from '../../supply/details';
+import { supplyDetails } from '@inventory/shared';
 import { SyncStatusBar } from '../../ui/SyncStatusBar';
 import { colors, ui } from '../../ui/styles';
 

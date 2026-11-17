@@ -1,5 +1,6 @@
-import type { Action, ActionBody } from '@inventory/shared';
-import { type BatchRow, inventoryFrom, type LoggedActionRow, onHand, replay, type SupplyRow } from './inventory';
+import { describe, expect, it } from 'vitest';
+import type { Action, ActionBody } from '../actions.ts';
+import { type BatchRow, inventoryFrom, type LoggedActionRow, onHand, replay, type SupplyRow } from './inventory.ts';
 
 const RICE = '11111111-1111-4111-8111-111111111111';
 const PANTRY = '22222222-2222-4222-8222-222222222222';

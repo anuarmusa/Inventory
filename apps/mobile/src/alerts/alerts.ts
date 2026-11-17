@@ -1,6 +1,6 @@
 import type { CalendarDate } from '@inventory/shared';
-import { expiresWhen, lowStock, nearExpiry } from '../home/lists';
-import type { Inventory } from '../sync/inventory';
+import { expiresWhen, lowStock, nearExpiry } from '@inventory/shared';
+import type { Inventory } from '@inventory/shared';
 
 /**
  * Alerts (spec §6.5, §13): each phone works out Low stock and Near expiry from its own data with

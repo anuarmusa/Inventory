@@ -1,7 +1,7 @@
 import { router, Stack, useLocalSearchParams } from 'expo-router';
 import { useMemo, useState } from 'react';
 import { Pressable, Text, View } from 'react-native';
-import { fixBody, history } from '../../history/history';
+import { fixBody, history } from '@inventory/shared';
 import { Stepper } from '../../scan/pickers';
 import { useSession } from '../../session/SessionProvider';
 import { colors, ui } from '../../ui/styles';

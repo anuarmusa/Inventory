@@ -1,6 +1,6 @@
 import type { Action } from '@inventory/shared';
 import { KEYS, type SessionStore } from '../session/session';
-import { emptyInventory, type Inventory, inventoryFrom, type PulledChanges, rowKey, TABLE_NAMES } from './inventory';
+import { emptyInventory, type Inventory, inventoryFrom, type PulledChanges, rowKey, TABLE_NAMES } from '@inventory/shared';
 
 /**
  * What the phone keeps between syncs: the server state it last pulled and its Unsent Actions, in the

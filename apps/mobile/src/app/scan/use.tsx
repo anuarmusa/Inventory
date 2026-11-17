@@ -1,10 +1,10 @@
 import { Redirect, router, useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
 import { Pressable, Text, View } from 'react-native';
-import { formatDate } from '../../scan/dates';
+import { formatDate } from '@inventory/shared';
 import { Stepper } from '../../scan/pickers';
 import { useSession } from '../../session/SessionProvider';
-import { previewUse } from '../../supply/details';
+import { previewUse } from '@inventory/shared';
 import { useToast } from '../../ui/Toast';
 import { colors, ui } from '../../ui/styles';
 

@@ -2,7 +2,7 @@ import { router } from 'expo-router';
 import { Alert, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSession } from '../session/SessionProvider';
 import { colors, ui } from '../ui/styles';
-import { type HistoryEntry, undoBody } from './history';
+import { type HistoryEntry, undoBody } from '@inventory/shared';
 
 const COUNTED_SINCE = 'Counted since: this won’t change the amount.';
 

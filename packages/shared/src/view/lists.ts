@@ -1,5 +1,6 @@
-import { type CalendarDate, daysBetween, DEFAULT_NEAR_EXPIRY_DAYS, isLowStock, isNearExpiry, shoppingAmount } from '@inventory/shared';
-import { type BatchRow, type Inventory, type MismatchRow, onHand, type SupplyRow } from '../sync/inventory';
+import { type CalendarDate, daysBetween } from '../dates.ts';
+import { DEFAULT_NEAR_EXPIRY_DAYS, isLowStock, isNearExpiry, shoppingAmount } from '../rules.ts';
+import { type BatchRow, type Inventory, type MismatchRow, onHand, type SupplyRow } from './inventory.ts';
 
 /**
  * What Home counts and lists (spec §6.1), worked out on the phone from the local view with the

@@ -1,5 +1,6 @@
-import { expiresWhen, keepTicks, localToday, lowStock, nearExpiry, openMismatches, shoppingList } from './lists';
-import { type BatchRow, inventoryFrom, type MismatchRow, type SupplyRow } from '../sync/inventory';
+import { describe, expect, it } from 'vitest';
+import { expiresWhen, keepTicks, localToday, lowStock, nearExpiry, openMismatches, shoppingList } from './lists.ts';
+import { type BatchRow, inventoryFrom, type MismatchRow, type SupplyRow } from './inventory.ts';
 
 const supply = (id: string, name: string, extra: Partial<SupplyRow> = {}): SupplyRow => ({
   id,

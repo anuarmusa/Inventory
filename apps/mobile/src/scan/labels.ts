@@ -1,5 +1,5 @@
 import type { ActionBody } from '@inventory/shared';
-import type { Inventory } from '../sync/inventory';
+import type { Inventory } from '@inventory/shared';
 
 /**
  * Labels in the app (spec §6.4, §10.3). A Label's QR is `INV1:<code>`. A code linked to an Asset or

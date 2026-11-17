@@ -1,5 +1,6 @@
-import { ActionBody } from '@inventory/shared';
-import { type AssetRow, type BatchRow, inventoryFrom, type SupplyRow } from '../sync/inventory';
+import { describe, expect, it } from 'vitest';
+import { ActionBody } from '../actions.ts';
+import { type AssetRow, type BatchRow, inventoryFrom, type SupplyRow } from './inventory.ts';
 import {
   assetForm,
   assetList,
@@ -12,7 +13,7 @@ import {
   saveSupply,
   supplyForm,
   supplyProblems,
-} from './things';
+} from './things.ts';
 
 const PANTRY = '22222222-2222-4222-8222-222222222222';
 const GARAGE = '23232323-2323-4323-8323-232323232323';

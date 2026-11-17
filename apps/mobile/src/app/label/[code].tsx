@@ -3,7 +3,7 @@ import { useMemo, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { attachLabel, whatLabelOpens } from '../../scan/labels';
 import { useSession } from '../../session/SessionProvider';
-import { assetList, liveLocations } from '../../things/things';
+import { assetList, liveLocations } from '@inventory/shared';
 import { colors, ui } from '../../ui/styles';
 
 type Step = 'choose' | 'asset' | 'location';

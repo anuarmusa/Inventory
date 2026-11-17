@@ -1,7 +1,7 @@
 import { Stack } from 'expo-router';
 import { useMemo } from 'react';
 import { ScrollView } from 'react-native';
-import { history } from '../history/history';
+import { history } from '@inventory/shared';
 import { HistoryList } from '../history/HistoryList';
 import { useSession } from '../session/SessionProvider';
 import { SyncStatusBar } from '../ui/SyncStatusBar';
