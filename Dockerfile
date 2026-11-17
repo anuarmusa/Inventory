@@ -14,7 +14,7 @@ RUN pnpm --filter @inventory/web build \
 
 FROM node:24-slim
 WORKDIR /app
-ENV NODE_ENV=production PORT=80 WEB_ROOT=/app/web
+ENV NODE_ENV=production PORT=80 WEB_ROOT=/app/web MIGRATIONS_DIR=/app/drizzle
 COPY --from=build /out ./
 COPY --from=build /repo/apps/web/dist ./web
 EXPOSE 80
