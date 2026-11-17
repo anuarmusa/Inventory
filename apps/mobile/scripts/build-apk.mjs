@@ -9,8 +9,12 @@ import { copyFileSync, existsSync, mkdirSync, readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-const appDir = join(dirname(fileURLToPath(import.meta.url)), '..');
 const windows = process.platform === 'win32';
+// On Windows, Metro and Expo Router build broken relative paths when the drive letter is lowercase
+// (e.g. a terminal opened at e:\). Always work from the uppercase form.
+const upperDrive = (p) => (windows ? p.replace(/^[a-z]:/, (d) => d.toUpperCase()) : p);
+const appDir = upperDrive(join(dirname(fileURLToPath(import.meta.url)), '..'));
+process.chdir(appDir);
 
 for (const name of ['JAVA_HOME', 'ANDROID_HOME']) {
   if (!process.env[name] || !existsSync(process.env[name])) {
