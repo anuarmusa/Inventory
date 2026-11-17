@@ -1,5 +1,6 @@
 import { sql } from 'drizzle-orm';
 import {
+  bigint,
   bigserial,
   boolean,
   check,
@@ -25,11 +26,14 @@ const createdAt = () => timestamp('created_at', { withTimezone: true }).notNull(
 const updatedAt = () => timestamp('updated_at', { withTimezone: true }).notNull().defaultNow();
 const deletedAt = () => timestamp('deleted_at', { withTimezone: true });
 const calendarDate = (name: string) => date(name, { mode: 'string' });
+/** The `seq` of the last Action that changed this row; Devices pull rows changed since a `seq`. */
+const changedSeq = () => bigint('changed_seq', { mode: 'number' }).notNull().default(0);
 
 /** Household-wide settings: a single row. */
 export const householdSettings = pgTable(
   'household_settings',
   {
+    changedSeq: changedSeq(),
     id: integer('id').primaryKey().default(1),
     nearExpiryDays: integer('near_expiry_days').notNull().default(7),
   },
@@ -37,6 +41,7 @@ export const householdSettings = pgTable(
 );
 
 export const categories = pgTable('categories', {
+    changedSeq: changedSeq(),
   id: uuid('id').primaryKey(),
   name: text('name').notNull(),
   createdAt: createdAt(),
@@ -44,6 +49,7 @@ export const categories = pgTable('categories', {
 });
 
 export const locations = pgTable('locations', {
+    changedSeq: changedSeq(),
   id: uuid('id').primaryKey(),
   name: text('name').notNull(),
   createdAt: createdAt(),
@@ -53,6 +59,7 @@ export const locations = pgTable('locations', {
 export const supplies = pgTable(
   'supplies',
   {
+    changedSeq: changedSeq(),
     id: uuid('id').primaryKey(),
     name: text('name').notNull(),
     /** The unit it is counted in: pieces, packs, bottles… Partly used units aren't tracked. */
@@ -80,6 +87,7 @@ export const barcodeSource = pgEnum('barcode_source', ['household', 'open_food_f
 export const barcodes = pgTable(
   'barcodes',
   {
+    changedSeq: changedSeq(),
     code: text('code').primaryKey(),
     supplyId: uuid('supply_id').notNull().references(() => supplies.id),
     brand: text('brand'),
@@ -99,11 +107,13 @@ export const barcodes = pgTable(
 export const batches = pgTable(
   'batches',
   {
+    changedSeq: changedSeq(),
     id: uuid('id').primaryKey(),
     supplyId: uuid('supply_id').notNull().references(() => supplies.id),
     quantity: integer('quantity').notNull(),
     expiry: calendarDate('expiry'),
-    locationId: uuid('location_id').notNull().references(() => locations.id),
+    /** Null only when the Supply has no usual Location to default to. */
+    locationId: uuid('location_id').references(() => locations.id),
     /** Breaks ties between Batches with the same expiry when using oldest first. */
     createdAt: createdAt(),
   },
@@ -116,6 +126,7 @@ export const batches = pgTable(
 export const assets = pgTable(
   'assets',
   {
+    changedSeq: changedSeq(),
     id: uuid('id').primaryKey(),
     name: text('name').notNull(),
     categoryId: uuid('category_id').references(() => categories.id),
@@ -140,6 +151,7 @@ export const assets = pgTable(
 export const maintenanceEntries = pgTable(
   'maintenance_entries',
   {
+    changedSeq: changedSeq(),
     id: uuid('id').primaryKey(),
     assetId: uuid('asset_id').notNull().references(() => assets.id),
     date: calendarDate('date').notNull(),
@@ -157,6 +169,7 @@ export const maintenanceEntries = pgTable(
 export const labels = pgTable(
   'labels',
   {
+    changedSeq: changedSeq(),
     code: text('code').primaryKey(),
     assetId: uuid('asset_id').references(() => assets.id),
     locationId: uuid('location_id').references(() => locations.id),
@@ -172,7 +185,7 @@ export const devices = pgTable('devices', {
   name: text('name').notNull(),
   model: text('model'),
   /** Hash of the long-lived Device key; the key itself is only ever on the phone. */
-  keyHash: text('key_hash').notNull(),
+  keyHash: text('key_hash').notNull().unique(),
   appVersion: text('app_version'),
   /** Server time minus the Device's clock, measured at the last push. */
   clockOffsetMs: integer('clock_offset_ms').notNull().default(0),
@@ -221,6 +234,7 @@ export const mismatchResolution = pgEnum('mismatch_resolution', [
 export const mismatches = pgTable(
   'mismatches',
   {
+    changedSeq: changedSeq(),
     id: uuid('id').primaryKey().defaultRandom(),
     kind: mismatchKind('kind').notNull(),
     /** The Action that caused it. */

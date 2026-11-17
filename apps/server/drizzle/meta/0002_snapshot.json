@@ -1,0 +1,1188 @@
+{
+  "id": "7f38716f-cb62-465c-90da-2aa34fb9fbdd",
+  "prevId": "61495f75-117c-40be-acfc-06179e9f2bc5",
+  "version": "7",
+  "dialect": "postgresql",
+  "tables": {
+    "public.actions": {
+      "name": "actions",
+      "schema": "",
+      "columns": {
+        "seq": {
+          "name": "seq",
+          "type": "bigserial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "device_id": {
+          "name": "device_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "type": {
+          "name": "type",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "shape_version": {
+          "name": "shape_version",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "payload": {
+          "name": "payload",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "device_time": {
+          "name": "device_time",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "corrected_time": {
+          "name": "corrected_time",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "received_at": {
+          "name": "received_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "outcome": {
+          "name": "outcome",
+          "type": "action_outcome",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "result": {
+          "name": "result",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {
+        "actions_device_idx": {
+          "name": "actions_device_idx",
+          "columns": [
+            {
+              "expression": "device_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "actions_type_idx": {
+          "name": "actions_type_idx",
+          "columns": [
+            {
+              "expression": "type",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "actions_device_id_devices_id_fk": {
+          "name": "actions_device_id_devices_id_fk",
+          "tableFrom": "actions",
+          "tableTo": "devices",
+          "columnsFrom": [
+            "device_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "actions_id_unique": {
+          "name": "actions_id_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "id"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.assets": {
+      "name": "assets",
+      "schema": "",
+      "columns": {
+        "changed_seq": {
+          "name": "changed_seq",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "name": {
+          "name": "name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "category_id": {
+          "name": "category_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "location_id": {
+          "name": "location_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "purchase_date": {
+          "name": "purchase_date",
+          "type": "date",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "price_sen": {
+          "name": "price_sen",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "shop": {
+          "name": "shop",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "serial_number": {
+          "name": "serial_number",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "warranty_end": {
+          "name": "warranty_end",
+          "type": "date",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "photo_ids": {
+          "name": "photo_ids",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'[]'::jsonb"
+        },
+        "receipt_photo_id": {
+          "name": "receipt_photo_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "notes": {
+          "name": "notes",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "disposed_at": {
+          "name": "disposed_at",
+          "type": "date",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "disposed_reason": {
+          "name": "disposed_reason",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "deleted_at": {
+          "name": "deleted_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "assets_category_id_categories_id_fk": {
+          "name": "assets_category_id_categories_id_fk",
+          "tableFrom": "assets",
+          "tableTo": "categories",
+          "columnsFrom": [
+            "category_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "assets_location_id_locations_id_fk": {
+          "name": "assets_location_id_locations_id_fk",
+          "tableFrom": "assets",
+          "tableTo": "locations",
+          "columnsFrom": [
+            "location_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {
+        "assets_price_nonnegative": {
+          "name": "assets_price_nonnegative",
+          "value": "\"assets\".\"price_sen\" IS NULL OR \"assets\".\"price_sen\" >= 0"
+        }
+      },
+      "isRLSEnabled": false
+    },
+    "public.barcodes": {
+      "name": "barcodes",
+      "schema": "",
+      "columns": {
+        "changed_seq": {
+          "name": "changed_seq",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
+        "code": {
+          "name": "code",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "supply_id": {
+          "name": "supply_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "brand": {
+          "name": "brand",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "product_name": {
+          "name": "product_name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "pack_size": {
+          "name": "pack_size",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "photo_id": {
+          "name": "photo_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "units_per_scan": {
+          "name": "units_per_scan",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 1
+        },
+        "source": {
+          "name": "source",
+          "type": "barcode_source",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'household'"
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "barcodes_supply_idx": {
+          "name": "barcodes_supply_idx",
+          "columns": [
+            {
+              "expression": "supply_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "barcodes_supply_id_supplies_id_fk": {
+          "name": "barcodes_supply_id_supplies_id_fk",
+          "tableFrom": "barcodes",
+          "tableTo": "supplies",
+          "columnsFrom": [
+            "supply_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {
+        "barcodes_units_per_scan_positive": {
+          "name": "barcodes_units_per_scan_positive",
+          "value": "\"barcodes\".\"units_per_scan\" > 0"
+        }
+      },
+      "isRLSEnabled": false
+    },
+    "public.batches": {
+      "name": "batches",
+      "schema": "",
+      "columns": {
+        "changed_seq": {
+          "name": "changed_seq",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "supply_id": {
+          "name": "supply_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "quantity": {
+          "name": "quantity",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "expiry": {
+          "name": "expiry",
+          "type": "date",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "location_id": {
+          "name": "location_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "batches_supply_idx": {
+          "name": "batches_supply_idx",
+          "columns": [
+            {
+              "expression": "supply_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "batches_supply_id_supplies_id_fk": {
+          "name": "batches_supply_id_supplies_id_fk",
+          "tableFrom": "batches",
+          "tableTo": "supplies",
+          "columnsFrom": [
+            "supply_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "batches_location_id_locations_id_fk": {
+          "name": "batches_location_id_locations_id_fk",
+          "tableFrom": "batches",
+          "tableTo": "locations",
+          "columnsFrom": [
+            "location_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {
+        "batches_quantity_nonnegative": {
+          "name": "batches_quantity_nonnegative",
+          "value": "\"batches\".\"quantity\" >= 0"
+        }
+      },
+      "isRLSEnabled": false
+    },
+    "public.categories": {
+      "name": "categories",
+      "schema": "",
+      "columns": {
+        "changed_seq": {
+          "name": "changed_seq",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "name": {
+          "name": "name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "deleted_at": {
+          "name": "deleted_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.devices": {
+      "name": "devices",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "name": {
+          "name": "name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "model": {
+          "name": "model",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "key_hash": {
+          "name": "key_hash",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "app_version": {
+          "name": "app_version",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "clock_offset_ms": {
+          "name": "clock_offset_ms",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
+        "paired_at": {
+          "name": "paired_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "last_synced_at": {
+          "name": "last_synced_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "removed_at": {
+          "name": "removed_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "devices_key_hash_unique": {
+          "name": "devices_key_hash_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "key_hash"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.household_settings": {
+      "name": "household_settings",
+      "schema": "",
+      "columns": {
+        "changed_seq": {
+          "name": "changed_seq",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
+        "id": {
+          "name": "id",
+          "type": "integer",
+          "primaryKey": true,
+          "notNull": true,
+          "default": 1
+        },
+        "near_expiry_days": {
+          "name": "near_expiry_days",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 7
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {
+        "household_settings_single_row": {
+          "name": "household_settings_single_row",
+          "value": "\"household_settings\".\"id\" = 1"
+        }
+      },
+      "isRLSEnabled": false
+    },
+    "public.labels": {
+      "name": "labels",
+      "schema": "",
+      "columns": {
+        "changed_seq": {
+          "name": "changed_seq",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
+        "code": {
+          "name": "code",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "asset_id": {
+          "name": "asset_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "location_id": {
+          "name": "location_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "retired_at": {
+          "name": "retired_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "labels_asset_id_assets_id_fk": {
+          "name": "labels_asset_id_assets_id_fk",
+          "tableFrom": "labels",
+          "tableTo": "assets",
+          "columnsFrom": [
+            "asset_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "labels_location_id_locations_id_fk": {
+          "name": "labels_location_id_locations_id_fk",
+          "tableFrom": "labels",
+          "tableTo": "locations",
+          "columnsFrom": [
+            "location_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {
+        "labels_one_target": {
+          "name": "labels_one_target",
+          "value": "\"labels\".\"asset_id\" IS NULL OR \"labels\".\"location_id\" IS NULL"
+        }
+      },
+      "isRLSEnabled": false
+    },
+    "public.locations": {
+      "name": "locations",
+      "schema": "",
+      "columns": {
+        "changed_seq": {
+          "name": "changed_seq",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "name": {
+          "name": "name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "deleted_at": {
+          "name": "deleted_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.maintenance_entries": {
+      "name": "maintenance_entries",
+      "schema": "",
+      "columns": {
+        "changed_seq": {
+          "name": "changed_seq",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "asset_id": {
+          "name": "asset_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "date": {
+          "name": "date",
+          "type": "date",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "note": {
+          "name": "note",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "cost_sen": {
+          "name": "cost_sen",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "maintenance_entries_asset_idx": {
+          "name": "maintenance_entries_asset_idx",
+          "columns": [
+            {
+              "expression": "asset_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "maintenance_entries_asset_id_assets_id_fk": {
+          "name": "maintenance_entries_asset_id_assets_id_fk",
+          "tableFrom": "maintenance_entries",
+          "tableTo": "assets",
+          "columnsFrom": [
+            "asset_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.mismatches": {
+      "name": "mismatches",
+      "schema": "",
+      "columns": {
+        "changed_seq": {
+          "name": "changed_seq",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "kind": {
+          "name": "kind",
+          "type": "mismatch_kind",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "action_id": {
+          "name": "action_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "details": {
+          "name": "details",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "resolved_at": {
+          "name": "resolved_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "resolved_by_action_id": {
+          "name": "resolved_by_action_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "resolution": {
+          "name": "resolution",
+          "type": "mismatch_resolution",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {
+        "mismatches_open_idx": {
+          "name": "mismatches_open_idx",
+          "columns": [
+            {
+              "expression": "resolved_at",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "mismatches_action_id_actions_id_fk": {
+          "name": "mismatches_action_id_actions_id_fk",
+          "tableFrom": "mismatches",
+          "tableTo": "actions",
+          "columnsFrom": [
+            "action_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "mismatches_resolved_by_action_id_actions_id_fk": {
+          "name": "mismatches_resolved_by_action_id_actions_id_fk",
+          "tableFrom": "mismatches",
+          "tableTo": "actions",
+          "columnsFrom": [
+            "resolved_by_action_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.supplies": {
+      "name": "supplies",
+      "schema": "",
+      "columns": {
+        "changed_seq": {
+          "name": "changed_seq",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "name": {
+          "name": "name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "unit": {
+          "name": "unit",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "category_id": {
+          "name": "category_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "usual_location_id": {
+          "name": "usual_location_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "minimum": {
+          "name": "minimum",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "restock_to": {
+          "name": "restock_to",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "expires": {
+          "name": "expires",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": true
+        },
+        "near_expiry_days": {
+          "name": "near_expiry_days",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "deleted_at": {
+          "name": "deleted_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "supplies_category_id_categories_id_fk": {
+          "name": "supplies_category_id_categories_id_fk",
+          "tableFrom": "supplies",
+          "tableTo": "categories",
+          "columnsFrom": [
+            "category_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "supplies_usual_location_id_locations_id_fk": {
+          "name": "supplies_usual_location_id_locations_id_fk",
+          "tableFrom": "supplies",
+          "tableTo": "locations",
+          "columnsFrom": [
+            "usual_location_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {
+        "supplies_minimum_nonnegative": {
+          "name": "supplies_minimum_nonnegative",
+          "value": "\"supplies\".\"minimum\" IS NULL OR \"supplies\".\"minimum\" >= 0"
+        },
+        "supplies_restock_to_positive": {
+          "name": "supplies_restock_to_positive",
+          "value": "\"supplies\".\"restock_to\" IS NULL OR \"supplies\".\"restock_to\" > 0"
+        }
+      },
+      "isRLSEnabled": false
+    }
+  },
+  "enums": {
+    "public.action_outcome": {
+      "name": "action_outcome",
+      "schema": "public",
+      "values": [
+        "applied",
+        "skipped"
+      ]
+    },
+    "public.barcode_source": {
+      "name": "barcode_source",
+      "schema": "public",
+      "values": [
+        "household",
+        "open_food_facts"
+      ]
+    },
+    "public.mismatch_kind": {
+      "name": "mismatch_kind",
+      "schema": "public",
+      "values": [
+        "shortfall",
+        "skipped_action",
+        "double_assignment"
+      ]
+    },
+    "public.mismatch_resolution": {
+      "name": "mismatch_resolution",
+      "schema": "public",
+      "values": [
+        "accepted",
+        "counted",
+        "redone",
+        "kept",
+        "merged",
+        "undone"
+      ]
+    }
+  },
+  "schemas": {},
+  "sequences": {},
+  "roles": {},
+  "policies": {},
+  "views": {},
+  "_meta": {
+    "columns": {},
+    "schemas": {},
+    "tables": {}
+  }
+}
