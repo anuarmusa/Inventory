@@ -49,6 +49,7 @@
           "cameraPermission": "Allow Inventory to use the camera to take pictures of Assets and receipts."
         }
       ],
+      "expo-notifications",
       "./plugins/with-short-native-build-dir"
     ],
     "experiments": {
