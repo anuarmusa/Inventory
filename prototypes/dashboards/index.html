@@ -1,0 +1,244 @@
+<!doctype html>
+<!--
+  PROTOTYPE, throwaway. Answers "Prototype the app summary screen, web dashboard and download page" (#15).
+  Plan: three structurally different variants (?variant=A|B|C, floating bar / arrow keys) of each of
+  three surfaces (?surface=home|web|download, tabs at the top). Content comes from earlier decisions;
+  this only asks how it should look. Sample data in memory; state toggles in the side panel.
+  Open by double-clicking this file.
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>PROTOTYPE · Dashboards</title>
+<style>
+:root{--bg:#eef0f3;--ink:#1d232b;--mute:#6b7480;--line:#dfe3e8;--acc:#0b7a5c;--acc2:#e3f3ec;--warn:#9a4a00;--warnbg:#fff1dc;--bad:#b42318;--badbg:#fdecea;--dark:#1b1f24}
+*{box-sizing:border-box}
+body{margin:0;font:14px/1.45 system-ui,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--ink)}
+button{font:inherit;cursor:pointer}
+h1,h2,h3,h4{margin:0 0 6px}
+.banner{background:#fff7d6;border-bottom:1px solid #eadb9c;padding:8px 16px;font-size:13px}
+.tabs{display:flex;gap:6px;padding:12px 16px 0;flex-wrap:wrap}
+.tabs button{border:1px solid var(--line);background:#fff;border-radius:99px;padding:6px 14px}
+.tabs button.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+.wrap{display:flex;gap:18px;padding:14px 16px 100px;align-items:flex-start;flex-wrap:wrap;justify-content:center}
+.ctl{width:250px;background:#fff;border:1px solid var(--line);border-radius:10px;padding:12px;font-size:13px}
+.ctl label{display:block;margin:6px 0}
+.ctl h4{font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--mute)}
+.phone{width:375px;height:760px;background:#fff;border:10px solid #111;border-radius:36px;overflow:auto;position:relative;flex:none}
+.browser{background:#fff;border:1px solid #c9ced6;border-radius:10px;overflow:hidden;flex:1;min-width:320px;max-width:1100px}
+.browser .bar{background:#f1f3f5;border-bottom:1px solid var(--line);padding:6px 10px;font-size:12px;color:var(--mute)}
+.browser .page{min-height:640px}
+.sbar{display:flex;justify-content:space-between;padding:6px 14px;font-size:12px;background:#f6f7f9;border-bottom:1px solid var(--line)}
+.mute{color:var(--mute)} small{font-size:12px}
+.badge{display:inline-block;font-size:11px;padding:1px 7px;border-radius:99px;background:#eef0f3;white-space:nowrap}
+.badge.warn{background:var(--warnbg);color:var(--warn)} .badge.bad{background:var(--badbg);color:var(--bad)} .badge.ok{background:var(--acc2);color:var(--acc)}
+.primary{background:var(--acc);color:#fff;border:0;border-radius:10px;padding:11px 14px;font-weight:600}
+.ghost{background:#fff;border:1px solid var(--line);border-radius:10px;padding:9px 14px}
+.pad{padding:14px}
+.note{padding:9px 11px;border-radius:9px;font-size:13px;margin:8px 0;background:#f3f4f6}
+.note.warn{background:var(--warnbg)} .note.bad{background:var(--badbg)} .note.ok{background:var(--acc2)}
+table{border-collapse:collapse;width:100%;font-size:13px}
+td,th{padding:6px 6px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+th{font-size:12px;color:var(--mute);font-weight:600}
+.num{text-align:right;font-variant-numeric:tabular-nums}
+.card{border:1px solid var(--line);border-radius:12px;padding:12px;background:#fff}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.kpi{border:1px solid var(--line);border-radius:12px;padding:12px;background:#fff}
+.kpi b{display:block;font-size:26px;line-height:1.1}
+.foot{padding:10px 16px;border-top:1px solid var(--line);font-size:12px;color:var(--mute);display:flex;justify-content:space-between;flex-wrap:wrap;gap:6px}
+.scanbig{width:100%;height:120px;border-radius:22px;border:0;background:var(--acc);color:#fff;font-size:24px;font-weight:700}
+.fab{position:sticky;bottom:16px;margin-left:auto;margin-right:16px;display:block;width:68px;height:68px;border-radius:50%;border:0;background:var(--acc);color:#fff;font-size:26px;box-shadow:0 6px 16px rgba(0,0,0,.25)}
+.list div.r{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--line);gap:8px}
+.check{display:flex;gap:10px;align-items:center;padding:9px 0;border-bottom:1px solid var(--line)}
+.check input{width:20px;height:20px}
+.check.done span{text-decoration:line-through;color:var(--mute)}
+.nav{width:210px;background:#f6f7f9;border-right:1px solid var(--line);padding:12px 8px;flex:none}
+.nav button{display:flex;justify-content:space-between;width:100%;text-align:left;border:0;background:none;padding:8px 10px;border-radius:8px}
+.nav button.on{background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.08);font-weight:600}
+.doc{max-width:760px;margin:0 auto;padding:24px 20px}
+.doc h2{margin-top:26px;padding-bottom:4px;border-bottom:2px solid var(--ink)}
+.lead{font-size:19px;line-height:1.5}
+.steps{counter-reset:s}
+.step{border:1px solid var(--line);border-radius:12px;padding:14px;margin-bottom:10px;position:relative;padding-left:54px}
+.step:before{counter-increment:s;content:counter(s);position:absolute;left:14px;top:14px;width:28px;height:28px;border-radius:50%;background:var(--acc);color:#fff;text-align:center;line-height:28px;font-weight:700}
+.qr{width:150px;height:150px;background:
+ repeating-linear-gradient(90deg,#111 0 7px,#fff 7px 14px),repeating-linear-gradient(0deg,#111 0 7px,#fff 7px 14px);background-blend-mode:difference;border:8px solid #fff;outline:1px solid var(--line)}
+.code{font:700 28px/1 ui-monospace,Consolas,monospace;letter-spacing:.15em}
+.modal{position:absolute;inset:0;background:rgba(0,0,0,.4);display:flex;align-items:center;justify-content:center;padding:16px}
+.modal .card{max-width:460px;width:100%}
+.switcher{position:fixed;left:50%;bottom:18px;transform:translateX(-50%);display:flex;align-items:center;gap:6px;background:#111;color:#fff;border-radius:99px;padding:6px 8px;box-shadow:0 6px 24px rgba(0,0,0,.35);z-index:99;font-size:13px;max-width:calc(100% - 32px)}
+.switcher button{background:#2a2a2a;color:#fff;border:0;border-radius:50%;width:32px;height:32px;font-size:16px}
+.switcher span{padding:0 10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+</style>
+</head>
+<body>
+<div class="banner"><b>PROTOTYPE, throwaway.</b> Three surfaces (tabs) × three variants (← → or the bottom bar). Use the panel to switch states on and off. Sample data only.</div>
+<div class="tabs" id="tabs"></div>
+<div class="wrap" id="wrap"></div>
+<div class="switcher"><button onclick="cycle(-1)">←</button><span id="vlabel"></span><button onclick="cycle(1)">→</button></div>
+<script>
+const TODAY='2026-11-17';
+const fmt=d=>d?new Date(d+'T00:00:00Z').toLocaleDateString('en-GB',{day:'numeric',month:'short',timeZone:'UTC'}):'–';
+const daysTo=d=>Math.round((new Date(d+'T00:00:00Z')-new Date(TODAY+'T00:00:00Z'))/864e5);
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const rm=n=>'RM '+n.toLocaleString('en-MY');
+
+// ---------- sample household ----------
+const supplies=[
+ {name:'Jasmine rice',unit:'packs',cat:'Food',onHand:1,min:1,restockTo:3},
+ {name:'Fresh milk',unit:'bottles',cat:'Drinks',onHand:2,min:2,restockTo:4},
+ {name:'Dishwashing liquid',unit:'bottles',cat:'Cleaning',onHand:1,min:1,restockTo:2},
+ {name:'Milo',unit:'tins',cat:'Drinks',onHand:2,min:1,restockTo:2},
+ {name:'Toilet paper',unit:'rolls',cat:'Toiletries',onHand:8,min:6,restockTo:20},
+ {name:'Chicken',unit:'packs',cat:'Food',onHand:3,min:2,restockTo:6},
+ {name:'Greek yogurt',unit:'tubs',cat:'Food',onHand:2,min:null,restockTo:null},
+];
+const near=[
+ {supply:'Greek yogurt',qty:2,unit:'tubs',expiry:'2026-11-19',loc:'Fridge'},
+ {supply:'Fresh milk',qty:1,unit:'bottles',expiry:'2026-11-20',loc:'Fridge'},
+ {supply:'Chicken',qty:1,unit:'packs',expiry:'2026-11-23',loc:'Freezer'},
+];
+const assets=[
+ {name:'Samsung 55" TV',cat:'Electronics',loc:'Living room',price:2899},
+ {name:'Fridge',cat:'Appliances',loc:'Kitchen',price:2100},
+ {name:'Washing machine',cat:'Appliances',loc:'Laundry',price:1450},
+ {name:'Cordless drill',cat:'Tools',loc:'Garage',price:349},
+];
+const mismatches=[
+ {text:'Kitchen phone used 3 Jasmine rice, but only 1 was on hand.',fixes:['Count it','Accept']},
+ {text:'Barcode 9556002345678 was given to both Milo and Chocolate drink.',fixes:['Keep on Milo','Merge the two']},
+];
+const activity=[
+ {t:'10 min ago',dev:'Kitchen phone',what:'Used 1 bottle of Fresh milk'},
+ {t:'1 h ago',dev:'Dad’s Samsung A54',what:'Added 2 tins of Milo · exp 10 Mar 2027 → Pantry'},
+ {t:'Yesterday',dev:'Aisyah’s phone',what:'Moved Cordless drill → Garage'},
+ {t:'Yesterday',dev:'Kitchen phone',what:'Stocktake: Toilet paper, 8 rolls'},
+ {t:'2 days ago',dev:'Dad’s Samsung A54',what:'Logged maintenance on Washing machine: new belt (RM 85)'},
+];
+const devices=[
+ {name:'Kitchen phone',model:'Redmi Note 13',ver:'1.4.0',seen:'10 min ago'},
+ {name:'Dad’s Samsung A54',model:'Samsung A54',ver:'1.4.0',seen:'1 h ago'},
+ {name:'Aisyah’s phone',model:'Oppo A78',ver:'1.3.2',seen:'2 days ago'},
+];
+const LATEST={ver:'1.4.0',date:'15 Nov 2026',notes:'Undo after saving, and Split for packs with two expiry dates.'};
+const S={mism:true,update:true,outdated:true,backupOk:true,empty:false};
+const low=()=>S.empty?[]:supplies.filter(s=>s.min!=null&&s.onHand<=s.min);
+const nearL=()=>S.empty?[]:near;
+const buy=()=>low().map(s=>({...s,need:s.restockTo-s.onHand}));
+const mis=()=>S.mism?mismatches:[];
+const assetTotal=()=>assets.reduce((n,a)=>n+a.price,0);
+const devs=()=>devices.map(d=>({...d,ver:S.outdated?d.ver:LATEST.ver}));
+const ago=d=>daysTo(d)<=0?'today':daysTo(d)===1?'tomorrow':`in ${daysTo(d)} days`;
+const footer=()=>`<div class="foot"><span>Server v${LATEST.ver}</span><span>${S.backupOk?'Last backup: today 03:00 ✓':'<span class="badge bad">Last backup failed: 3 days ago</span>'}</span></div>`;
+const checked={};
+function go(fn,...a){fn(...a);render()}
+const ui={homeB:null,webB:'overview',dlC:false};
+
+// ================= APP HOME =================
+const sbar=()=>`<div class="sbar"><b>9:41</b><span>🏠 Home Wi-Fi · synced</span></div>`;
+const updateBanner=compact=>S.update?`<div class="note ok" style="margin:${compact?'8px 0':'10px 14px'}">⬆️ <b>Update available: v${LATEST.ver}</b><br><small>${esc(LATEST.notes)}</small><div style="margin-top:6px"><button class="primary" style="padding:6px 12px">Update</button> <button class="ghost" style="padding:5px 10px">Later</button></div></div>`:'';
+const misChip=()=>mis().length?`<div class="note bad" style="display:flex;justify-content:space-between;align-items:center"><span>⚠️ <b>${mis().length} need checking</b></span><span>›</span></div>`:'';
+const HOME={
+ A:{name:'Attention feed, Scan pinned at the bottom',render(){
+  const items=[...mis().map(m=>({k:'bad',icon:'⚠️',title:'Needs checking',body:m.text,act:m.fixes[0]})),
+   ...nearL().map(b=>({k:'warn',icon:'⏳',title:`${b.supply} expires ${ago(b.expiry)}`,body:`${b.qty} ${b.unit} in the ${b.loc}`,act:'Used it'})),
+   ...low().map(s=>({k:'warn',icon:'📉',title:`${s.name} is low`,body:`${s.onHand} left · buy ${s.restockTo-s.onHand} to get back to ${s.restockTo}`,act:''}))];
+  return sbar()+`<div class="pad" style="padding-bottom:0"><h2>Today</h2><div class="mute">${items.length?items.length+' things need you':'All good. Nothing needs you.'}</div></div>${updateBanner()}
+  <div class="pad" style="display:flex;flex-direction:column;gap:10px">${items.map(i=>`<div class="card" style="border-left:4px solid var(--${i.k==='bad'?'bad':'warn'})"><b>${i.icon} ${esc(i.title)}</b><div class="mute" style="font-size:13px">${esc(i.body)}</div>${i.act?`<button class="ghost" style="margin-top:6px;padding:5px 10px">${i.act}</button>`:''}</div>`).join('')||'<div style="text-align:center;font-size:48px;padding:40px">✅</div>'}</div>
+  <div style="position:sticky;bottom:0;padding:12px 14px;background:linear-gradient(transparent,#fff 30%)"><button class="scanbig" style="height:72px">📷 Scan</button></div>`;}},
+ B:{name:'Count tiles + big Scan (as in the scan-flow verdict)',render(){
+  if(ui.homeB){const k=ui.homeB;const rows=k==='low'?low().map(s=>`<div class="r"><span>${esc(s.name)}</span><span class="badge warn">${s.onHand} left</span></div>`):k==='near'?nearL().map(b=>`<div class="r"><span>${esc(b.supply)} <small class="mute">${b.loc}</small></span><span class="badge warn">${ago(b.expiry)}</span></div>`):buy().map(s=>`<label class="check ${checked[s.name]?'done':''}"><input type="checkbox" ${checked[s.name]?'checked':''} onchange="go(()=>checked['${s.name}']=this.checked)"><span>${esc(s.name)} · <b>${s.need} ${s.unit}</b></span></label>`);
+   return sbar()+`<div class="pad"><button class="ghost" onclick="go(()=>ui.homeB=null)">‹ Home</button><h2 style="margin-top:10px">${{low:'Low stock',near:'Near expiry',buy:'Shopping list'}[k]}</h2><div class="list">${rows.join('')||'<p class="mute">Nothing here.</p>'}</div></div>`;}
+  const tile=(k,n,l)=>`<button class="kpi" style="text-align:center" onclick="go(()=>ui.homeB='${k}')"><b style="color:${n?'var(--warn)':'var(--ink)'}">${n}</b><small>${l}</small></button>`;
+  return sbar()+`<div class="pad"><h2>Our home</h2>${updateBanner(true)}${misChip()}<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:10px 0">${tile('low',low().length,'Low stock')}${tile('near',nearL().length,'Near expiry')}${tile('buy',buy().length,'To buy')}</div>
+  <button class="scanbig" style="margin-top:20px;height:170px">📷 Scan</button><p class="mute" style="text-align:center">Scan a product or a Label</p></div>`;}},
+ C:{name:'Shopping list first, Scan as a floating button',render(){
+  return sbar()+`<div class="pad"><h2>To buy</h2>${updateBanner(true)}${misChip()}
+  <div>${buy().map(s=>`<label class="check ${checked[s.name]?'done':''}"><input type="checkbox" ${checked[s.name]?'checked':''} onchange="go(()=>checked['${s.name}']=this.checked)"><span><b>${esc(s.name)}</b> · ${s.need} ${s.unit}<br><small class="mute">${s.onHand} at home</small></span></label>`).join('')||'<p class="mute">Nothing to buy.</p>'}</div>
+  <h3 style="margin-top:18px">Use soon</h3><div style="display:flex;gap:8px;overflow:auto;padding-bottom:6px">${nearL().map(b=>`<div class="card" style="min-width:140px"><b>${esc(b.supply)}</b><div><span class="badge warn">${ago(b.expiry)}</span></div><small class="mute">${b.qty} ${b.unit} · ${b.loc}</small></div>`).join('')||'<span class="mute">Nothing expiring this week.</span>'}</div>
+  <p class="mute" style="font-size:12px;margin-top:16px">Assets: ${assets.length} · ${rm(assetTotal())} (on the web dashboard)</p></div><button class="fab">📷</button>`;}},
+};
+
+// ================= WEB DASHBOARD =================
+const T={
+ low:()=>`<table><tr><th>Supply</th><th class="num">On hand</th><th class="num">Minimum</th></tr>${low().map(s=>`<tr><td>${esc(s.name)}</td><td class="num">${s.onHand} ${s.unit}</td><td class="num">${s.min}</td></tr>`).join('')||'<tr><td class="mute">Nothing low.</td></tr>'}</table>`,
+ near:()=>`<table><tr><th>Batch</th><th>Where</th><th>Expires</th></tr>${nearL().map(b=>`<tr><td>${b.qty} ${b.unit} ${esc(b.supply)}</td><td>${b.loc}</td><td><span class="badge warn">${fmt(b.expiry)} · ${ago(b.expiry)}</span></td></tr>`).join('')||'<tr><td class="mute">Nothing expiring in 7 days.</td></tr>'}</table>`,
+ buy:()=>`<table><tr><th></th><th>Supply</th><th class="num">Buy</th><th class="num">At home</th></tr>${buy().map(s=>`<tr><td><input type="checkbox"></td><td>${esc(s.name)}</td><td class="num"><b>${s.need} ${s.unit}</b></td><td class="num">${s.onHand}</td></tr>`).join('')||'<tr><td class="mute" colspan=4>Nothing to buy.</td></tr>'}</table>`,
+ assets:()=>`<table><tr><th>Asset</th><th>Where</th><th class="num">Price</th></tr>${assets.map(a=>`<tr><td>${esc(a.name)}</td><td>${a.loc}</td><td class="num">${rm(a.price)}</td></tr>`).join('')}<tr><td><b>Total (still owned)</b></td><td></td><td class="num"><b>${rm(assetTotal())}</b></td></tr></table>`,
+ mis:()=>mis().map(m=>`<div class="note bad">${esc(m.text)}<div style="margin-top:6px">${m.fixes.map(f=>`<button class="ghost" style="padding:4px 10px;margin-right:6px">${f}</button>`).join('')}</div></div>`).join('')||'<p class="mute">Nothing needs checking.</p>',
+ act:()=>`<table>${activity.map(a=>`<tr><td class="mute" style="white-space:nowrap">${a.t}</td><td>${esc(a.what)}<br><small class="mute">${esc(a.dev)}</small></td><td><button class="ghost" style="padding:3px 8px;font-size:12px">Undo</button></td></tr>`).join('')}</table>`,
+};
+const WEB={
+ A:{name:'One-screen report grid with activity sidebar',render(){
+  return `<div style="display:flex;flex-wrap:wrap"><div style="flex:3;min-width:300px;padding:18px"><h2>Our home</h2>
+  ${mis().length?`<div class="card" style="border-color:var(--bad);margin-bottom:12px"><h3>⚠️ Needs checking (${mis().length})</h3>${T.mis()}</div>`:''}
+  <div class="grid2"><div class="card"><h3>Shopping list</h3>${T.buy()}</div><div class="card"><h3>Near expiry</h3>${T.near()}</div><div class="card"><h3>Low stock</h3>${T.low()}</div><div class="card"><h3>Assets · ${rm(assetTotal())}</h3>${T.assets()}</div></div></div>
+  <div style="flex:1;min-width:240px;border-left:1px solid var(--line);padding:18px;background:#fafbfc"><h3>Recent activity</h3>${T.act()}</div></div>${footer()}`;}},
+ B:{name:'Sidebar navigation, KPI overview, one report per page',render(){
+  const pages=[['overview','Overview'],['buy','Shopping list',buy().length],['low','Low stock',low().length],['near','Near expiry',nearL().length],['assets','Assets'],['mis','Needs checking',mis().length],['act','Activity'],['dl','Devices & download']];
+  const p=ui.webB;let main;
+  if(p==='overview') main=`<h2>Overview</h2><div class="kpis">${[['buy','To buy',buy().length],['low','Low stock',low().length],['near','Expiring ≤ 7 days',nearL().length],['assets','Asset value',rm(assetTotal())]].map(([k,l,v])=>`<button class="kpi" style="text-align:left" onclick="go(()=>ui.webB='${k}')"><small class="mute">${l}</small><b>${v}</b></button>`).join('')}</div>
+   ${mis().length?`<div class="note bad" style="margin-top:14px;cursor:pointer" onclick="go(()=>ui.webB='mis')">⚠️ <b>${mis().length} things need checking</b> ›</div>`:''}<h3 style="margin-top:18px">Latest activity</h3>${T.act()}`;
+  else if(p==='dl') main=`<h2>Devices & download</h2><p class="mute">The download page is its own surface; see the Download page tab.</p>`;
+  else main=`<h2>${pages.find(x=>x[0]===p)[1]}</h2>${T[p]()}`;
+  return `<div style="display:flex;min-height:620px"><div class="nav"><b style="display:block;padding:4px 10px 10px">🏠 Inventory</b>${pages.map(([k,l,n])=>`<button class="${p===k?'on':''}" onclick="go(()=>ui.webB='${k}')"><span>${l}</span>${n?`<span class="badge ${k==='mis'?'bad':'warn'}">${n}</span>`:''}</button>`).join('')}</div><div style="flex:1;padding:20px">${main}</div></div>${footer()}`;}},
+ C:{name:'One long printable page that reads like a report',render(){
+  const sentence=S.empty?'Everything is stocked and nothing is expiring this week.':`${buy().length} things to buy, ${nearL().length} expiring this week${mis().length?`, and <b>${mis().length} things need checking</b>`:''}. Your Assets are worth ${rm(assetTotal())}.`;
+  return `<div class="doc"><div class="mute">Tuesday 17 November 2026 <button class="ghost" style="float:right;padding:4px 10px">🖨 Print shopping list</button></div><p class="lead">${sentence}</p>
+  ${mis().length?`<h2>Needs checking</h2>${T.mis()}`:''}<h2>Shopping list</h2>${T.buy()}<h2>Use soon</h2>${T.near()}<h2>Low stock</h2>${T.low()}<h2>Assets</h2>${T.assets()}<h2>What happened lately</h2>${T.act()}</div>${footer()}`;}},
+};
+
+// ================= DOWNLOAD PAGE =================
+const devTable=()=>`<table><tr><th>Device</th><th>App</th><th>Last synced</th><th></th></tr>${devs().map(d=>`<tr><td><b>${esc(d.name)}</b><br><small class="mute">${esc(d.model)}</small></td><td>v${d.ver} ${d.ver!==LATEST.ver?'<span class="badge warn">Out of date</span>':''}</td><td>${d.seen}</td><td><button class="ghost" style="padding:3px 8px;font-size:12px">Remove</button></td></tr>`).join('')}</table>`;
+const pairBlock=()=>`<div style="display:flex;gap:16px;align-items:center;flex-wrap:wrap"><div class="qr"></div><div><div class="mute">Or type in the app</div><div>Server <b>192.168.1.10</b></div><div class="code">482 913</div><small class="mute">Code expires in 9:41</small></div></div>`;
+const DL={
+ A:{name:'Numbered steps for the phone, Devices below',render(narrow){
+  return `<div class="pad" style="max-width:620px;margin:0 auto"><h2>Get the Inventory app</h2><p class="mute">For Android phones on our home Wi-Fi.</p><div class="steps">
+  <div class="step"><b>Download the app</b><div class="mute">v${LATEST.ver} · ${LATEST.date}</div><small>${esc(LATEST.notes)}</small><div style="margin-top:8px"><button class="primary">⬇ Download APK</button></div></div>
+  <div class="step"><b>Install it</b><div class="mute" style="font-size:13px">Open the download. If Android asks, allow your browser to install unknown apps.</div></div>
+  <div class="step"><b>Connect this phone</b><div style="margin-top:8px"><button class="primary">🔗 Connect this phone</button></div><details style="margin-top:10px"><summary class="mute">Using another screen? Scan a code instead</summary><div style="margin-top:10px">${pairBlock()}</div></details></div></div>
+  <h3 style="margin-top:20px">Phones connected</h3>${devTable()}</div>${footer()}`;}},
+ B:{name:'Two halves: “this phone” and “pair from this screen”',render(narrow){
+  return `<div class="pad"><h2>Inventory app · v${LATEST.ver}</h2><p class="mute">${LATEST.date}: ${esc(LATEST.notes)}</p>
+  <div style="display:flex;gap:14px;flex-wrap:wrap"><div class="card" style="flex:1;min-width:250px"><h3>📱 On this phone</h3><p class="mute" style="font-size:13px">Download, install, then come back and tap Connect.</p><button class="primary" style="width:100%;margin-bottom:8px">⬇ Download APK</button><button class="ghost" style="width:100%">🔗 Connect this phone</button></div>
+  <div class="card" style="flex:1;min-width:250px"><h3>🖥 Pair from this screen</h3><p class="mute" style="font-size:13px">Open the app on the phone and scan:</p>${pairBlock()}</div></div>
+  <h3 style="margin-top:20px">Phones connected (${devs().length})</h3>${devTable()}</div>${footer()}`;}},
+ C:{name:'Devices list first, “Add a phone” opens a dialog',render(narrow){
+  const out=devs().filter(d=>d.ver!==LATEST.ver).length;
+  return `<div class="pad" style="position:relative;min-height:600px"><div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px"><h2>Phones</h2><button class="primary" onclick="go(()=>ui.dlC=true)">＋ Add a phone</button></div>
+  ${out?`<div class="note warn">${out} phone${out>1?'s are':' is'} on an old version. Open the app there and tap Update.</div>`:''}${devTable()}
+  <p class="mute" style="font-size:12px;margin-top:12px">Latest app: v${LATEST.ver} (${LATEST.date}): ${esc(LATEST.notes)}</p>
+  ${ui.dlC?`<div class="modal"><div class="card"><div style="display:flex;justify-content:space-between"><h3>Add a phone</h3><button class="ghost" style="padding:2px 10px" onclick="go(()=>ui.dlC=false)">✕</button></div><p><b>1.</b> On the phone: <button class="primary" style="padding:6px 10px">⬇ Download APK</button></p><p><b>2.</b> Install, then tap <button class="ghost" style="padding:5px 10px">🔗 Connect this phone</button></p><p class="mute"><b>3.</b> Or scan with the app:</p>${pairBlock()}</div></div>`:''}</div>${footer()}`;}},
+};
+
+// ---------- wiring ----------
+const SURF={home:['App Home',HOME],web:['Web dashboard',WEB],download:['Download page',DL]};
+const qs=new URLSearchParams(location.search);
+let surface=SURF[qs.get('surface')]?qs.get('surface'):'home', variant=['A','B','C'].includes(qs.get('variant'))?qs.get('variant'):'A';
+function setUrl(){try{history.replaceState(null,'',`?surface=${surface}&variant=${variant}`)}catch(e){}}
+function cycle(d){const k=['A','B','C'];variant=k[(k.indexOf(variant)+d+3)%3];setUrl();render()}
+function setSurface(s){surface=s;setUrl();render()}
+addEventListener('keydown',e=>{if(e.target.matches&&e.target.matches('input,textarea,select,[contenteditable]'))return;if(e.key==='ArrowLeft')cycle(-1);if(e.key==='ArrowRight')cycle(1)});
+function render(){
+ const V=SURF[surface][1][variant];
+ document.getElementById('tabs').innerHTML=Object.entries(SURF).map(([k,[l]])=>`<button class="${k===surface?'on':''}" onclick="setSurface('${k}')">${l}</button>`).join('');
+ const ctl=`<div class="ctl"><h4>States</h4>
+  <label><input type="checkbox" ${S.mism?'checked':''} onchange="go(()=>S.mism=this.checked)"> Mismatches need checking</label>
+  <label><input type="checkbox" ${S.update?'checked':''} onchange="go(()=>S.update=this.checked)"> App update available</label>
+  <label><input type="checkbox" ${S.outdated?'checked':''} onchange="go(()=>S.outdated=this.checked)"> A Device is out of date</label>
+  <label><input type="checkbox" ${S.backupOk?'checked':''} onchange="go(()=>S.backupOk=this.checked)"> Last backup OK</label>
+  <label><input type="checkbox" ${S.empty?'checked':''} onchange="go(()=>S.empty=this.checked)"> All good (nothing low or expiring)</label>
+  <p class="mute" style="margin-top:10px">${surface==='download'?'Shown at phone and PC width, since the page is usually opened on the phone.':surface==='home'?'The app’s first screen.':'Opened from a PC browser on the home network.'}</p></div>`;
+ let stage;
+ if(surface==='home') stage=`<div class="phone">${V.render()}</div>`;
+ else if(surface==='web') stage=`<div class="browser"><div class="bar">http://192.168.1.10/</div><div class="page">${V.render()}</div></div>`;
+ else stage=`<div class="phone" style="border-width:8px">${V.render(true)}</div><div class="browser"><div class="bar">http://192.168.1.10/app</div><div class="page">${V.render(false)}</div></div>`;
+ document.getElementById('wrap').innerHTML=ctl+stage;
+ document.getElementById('vlabel').textContent=`${SURF[surface][0]} · ${variant} · ${V.name}`;
+}
+render();
+</script>
+</body>
+</html>
