@@ -6,6 +6,8 @@ export default defineConfig({
   plugins: [react()],
   server: {
     port: 5173,
-    proxy: { '/health': 'http://localhost:3000' },
+    proxy: Object.fromEntries(
+      ['/health', '/apk', '/pairing', '/devices', '/sync'].map((path) => [path, 'http://localhost:3000']),
+    ),
   },
 });

@@ -1,22 +1,21 @@
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { type AppVersions, MIN_APP_VERSION } from '@inventory/shared';
+import { AppRelease, type AppVersions, MIN_APP_VERSION } from '@inventory/shared';
 
 /**
- * Reads the latest hosted app version from `latest.json` beside the APK (written by the deploy
- * script, spec §9). No file yet means no APK is hosted.
+ * Reads the hosted release from `latest.json` beside the APK (written by the deploy script,
+ * spec §9). No file, or an unreadable one, means no APK is hosted yet.
  */
+export function readLatestRelease(apkDir: string | undefined): AppRelease | null {
+  if (!apkDir) return null;
+  try {
+    const parsed = AppRelease.safeParse(JSON.parse(readFileSync(join(apkDir, 'latest.json'), 'utf8')));
+    return parsed.success ? parsed.data : null;
+  } catch {
+    return null;
+  }
+}
+
 export function appVersionsFrom(apkDir: string | undefined): () => AppVersions {
-  return () => {
-    let latest: string | null = null;
-    if (apkDir) {
-      try {
-        const parsed = JSON.parse(readFileSync(join(apkDir, 'latest.json'), 'utf8')) as { version?: unknown };
-        if (typeof parsed.version === 'string') latest = parsed.version;
-      } catch {
-        latest = null;
-      }
-    }
-    return { latest, minimum: MIN_APP_VERSION };
-  };
+  return () => ({ latest: readLatestRelease(apkDir)?.version ?? null, minimum: MIN_APP_VERSION });
 }

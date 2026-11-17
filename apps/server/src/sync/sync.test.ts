@@ -17,7 +17,7 @@ describe.skipIf(!canRun)('sync', () => {
   let testDb: TestDatabase;
   let app: FastifyInstance;
   const apkDir = mkdtempSync(join(tmpdir(), 'apk-'));
-  writeFileSync(join(apkDir, 'latest.json'), JSON.stringify({ version: '1.4.0' }));
+  writeFileSync(join(apkDir, 'latest.json'), JSON.stringify({ version: '1.4.0', date: '2026-11-15', notes: 'Undo after saving.', file: 'inventory-1.4.0.apk' }));
 
   beforeAll(async () => {
     testDb = await createTestDatabase();
