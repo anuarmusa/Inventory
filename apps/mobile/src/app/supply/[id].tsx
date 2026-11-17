@@ -63,6 +63,16 @@ export default function SupplyPage() {
       <Text style={ui.mute}>
         Usually in {d.usualLocationName ?? 'no set Location'} · {supply.expires ? 'expires' : 'doesn’t expire'}
       </Text>
+      {!supply.deletedAt && (
+        <View style={{ flexDirection: 'row', gap: 16 }}>
+          <Pressable onPress={() => router.push({ pathname: '/supply/edit', params: { id: supply.id } })}>
+            <Text style={{ color: colors.accent }}>Edit</Text>
+          </Pressable>
+          <Pressable onPress={() => router.push({ pathname: '/count/[supplyId]', params: { supplyId: supply.id } })}>
+            <Text style={{ color: colors.accent }}>Count it</Text>
+          </Pressable>
+        </View>
+      )}
 
       <Text style={styles.heading}>Batches</Text>
       {d.batches.length === 0 && <Text style={ui.mute}>None at home.</Text>}

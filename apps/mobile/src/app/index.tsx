@@ -60,15 +60,27 @@ export default function Home() {
         <Text style={styles.scanText}>📷 Scan</Text>
       </Pressable>
       <Text style={[ui.mute, { textAlign: 'center' }]}>Scan a product or a Label</Text>
-      <Pressable onPress={() => router.push('/activity')} style={{ alignItems: 'center', padding: 8 }}>
-        <Text style={{ color: colors.accent }}>Recent activity</Text>
-      </Pressable>
+      <View style={styles.links}>
+        {(
+          [
+            ['/supplies', 'Supplies'],
+            ['/assets', 'Assets'],
+            ['/activity', 'Recent activity'],
+            ['/settings', 'Settings'],
+          ] as const
+        ).map(([href, label]) => (
+          <Pressable key={href} onPress={() => router.push(href)} style={{ padding: 8 }}>
+            <Text style={{ color: colors.accent }}>{label}</Text>
+          </Pressable>
+        ))}
+      </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   tiles: { flexDirection: 'row', gap: 8, marginTop: 4 },
+  links: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center' },
   scan: {
     marginTop: 16,
     height: 170,
