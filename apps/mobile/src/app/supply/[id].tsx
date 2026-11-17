@@ -1,6 +1,7 @@
-import { Stack, useLocalSearchParams } from 'expo-router';
+import { router, Stack, useLocalSearchParams } from 'expo-router';
 import { useMemo } from 'react';
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { possibleDuplicates } from '../../checking/mismatches';
 import { history } from '../../history/history';
 import { HistoryList } from '../../history/HistoryList';
 import { localToday } from '../../home/lists';
@@ -19,6 +20,7 @@ export default function SupplyPage() {
   const { inventory, unsent } = useSession();
   const d = useMemo(() => (id ? supplyDetails(inventory, id, localToday()) : null), [inventory, id]);
   const entries = useMemo(() => (id ? history(inventory, unsent, { supplyId: id }) : []), [inventory, unsent, id]);
+  const duplicates = useMemo(() => (id ? possibleDuplicates(inventory, id) : []), [inventory, id]);
 
   if (!d) {
     return (
@@ -38,6 +40,17 @@ export default function SupplyPage() {
           <Text style={ui.noteText}>This Supply was deleted.</Text>
         </View>
       )}
+      {duplicates.map((dup) => (
+        <Pressable
+          key={dup.id}
+          style={ui.note}
+          onPress={() => router.push({ pathname: '/merge', params: { from: dup.id, into: supply.id } })}
+        >
+          <Text style={ui.noteText}>
+            Possible duplicate: another “{dup.name}” has {dup.onHand} {supply.unit}. Merge them ›
+          </Text>
+        </Pressable>
+      ))}
       <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: 8 }}>
         <Text style={styles.big}>{d.onHand}</Text>
         <Text style={ui.body}>{supply.unit} on hand</Text>
