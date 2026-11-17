@@ -33,6 +33,8 @@ export const KEYS = {
   dismissedUpdate: 'dismissed_update',
   /** Set once the "Install unknown apps" guidance has been shown. */
   installGuided: 'install_guided',
+  /** The daily summary's plan: what it already told and what's scheduled, as JSON. */
+  alertState: 'alert_state',
 } as const;
 
 export interface SessionStore {

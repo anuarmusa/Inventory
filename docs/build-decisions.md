@@ -88,3 +88,12 @@ Decisions made while building v1 ([`docs/spec/v1.md`](spec/v1.md)) that the spec
 
   The first time, a note explains Android's "Install unknown apps" switch. If the download fails, the app points to the download page as the fallback.
 - **New native module** (`expo-intent-launcher`) and a new permission, so the next APK build is needed before Update works on a phone.
+
+## Alerts: daily summary notification (#37)
+
+- **Planned ahead, not computed at 09:00.** Android doesn't reliably run app code in the background at a set time. So whenever the phone's data changes (it waits 3 s for a sync or basket to settle), it works out Low stock and Near expiry with the shared rules (the same lists as Home) and schedules one local notification for the next 09:00 with what's new. If nothing is new, it cancels it. There is no server involvement.
+- **"New"** means not yet in a summary whose 09:00 has passed. Something that stops being Low stock or Near expiry is forgotten, so it counts as new if it comes back. Replanning before 09:00 doesn't count the pending summary as sent.
+- **Text**: title "2 Low stock, 1 Near expiry"; body "Low stock: Jasmine rice (1 left), …. Near expiry: Fresh milk (in 2 days)." Up to four names per kind, then "and N more".
+- **Permission** is asked the first time there is something to tell, not at first launch.
+- **Limit**: if the phone isn't opened for days, the 09:00 summary reflects what it knew when it was last open. That's acceptable, since Alerts are about the phone's own data.
+- **New native module** (`expo-notifications`), so the next APK build is needed.
