@@ -1,4 +1,5 @@
-import type { RedeemRequest, RedeemResponse } from '@inventory/shared';
+import type { AppVersions, PushRequest, PushResponse, RedeemRequest, RedeemResponse } from '@inventory/shared';
+import type { PulledChanges } from '../sync/inventory';
 
 /**
  * Talks to the home server. Every failure becomes an ApiError with a reason the screens can explain.
@@ -26,12 +27,17 @@ export class ApiError extends Error {
 }
 
 export interface PullResult {
+  /** The server's sequence number this snapshot is complete up to. */
   seq: number;
+  /** Rows changed since the `since` asked for. */
+  changes: PulledChanges;
+  app: AppVersions;
 }
 
 export interface Api {
   redeem(server: string, body: RedeemRequest): Promise<RedeemResponse>;
   pull(server: string, key: string, since: number): Promise<PullResult>;
+  push(server: string, key: string, body: PushRequest): Promise<PushResponse>;
 }
 
 const KNOWN: ApiErrorReason[] = [
@@ -76,5 +82,11 @@ export function createApi(fetchImpl: typeof fetch = fetch, timeoutMs = TIMEOUT_M
       }),
     pull: (server, key, since) =>
       call<PullResult>(`${server}/sync/pull?since=${since}`, { headers: { authorization: `Bearer ${key}` } }),
+    push: (server, key, body) =>
+      call<PushResponse>(`${server}/sync/push`, {
+        method: 'POST',
+        headers: { authorization: `Bearer ${key}`, 'content-type': 'application/json' },
+        body: JSON.stringify(body),
+      }),
   };
 }

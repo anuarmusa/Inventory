@@ -1,4 +1,5 @@
-import { ApiError, type Api } from '../api/client';
+import type { Api } from '../api/client';
+import type { LocalStore } from '../sync/local';
 
 /**
  * Whether this phone is connected to the home server (spec §4.2 first run, §7 Pairing).
@@ -69,7 +70,7 @@ export interface ConnectRequest {
  * Pairs with the home server, then does the first full sync. A phone that was removed sends its
  * previous key, so the server gives it back the same Device and its unsent Actions still sync.
  */
-export async function connect(store: SessionStore, api: Api, request: ConnectRequest): Promise<Session> {
+export async function connect(store: SessionStore, api: Api, local: LocalStore, request: ConnectRequest): Promise<Session> {
   const previousKey = (await store.get(KEYS.previousDeviceKey)) ?? (await store.get(KEYS.deviceKey));
   const paired = await api.redeem(request.server, {
     code: request.code,
@@ -77,6 +78,9 @@ export async function connect(store: SessionStore, api: Api, request: ConnectReq
     model: request.model,
     previousKey,
   });
+  // Connected as a new Device: this phone's Unsent Actions are sent as the new Device's.
+  const before = await store.get(KEYS.deviceId);
+  if (before && before !== paired.deviceId) await local.reassignUnsent(paired.deviceId);
   await store.set(KEYS.deviceKey, paired.deviceKey);
   await store.set(KEYS.server, request.server);
   await store.set(KEYS.deviceId, paired.deviceId);
@@ -84,46 +88,25 @@ export async function connect(store: SessionStore, api: Api, request: ConnectReq
   await store.delete(KEYS.previousDeviceKey);
   await store.delete(KEYS.removed);
   await store.delete(KEYS.firstSyncDone);
-  return finishFirstSync(store, api);
+  return finishFirstSync(store, api, local);
 }
 
 /** The first full sync after pairing. Until it succeeds the phone stays at "Connect at home". */
-export async function finishFirstSync(store: SessionStore, api: Api): Promise<Session> {
+export async function finishFirstSync(store: SessionStore, api: Api, local: LocalStore): Promise<Session> {
   const [key, server] = await Promise.all([store.get(KEYS.deviceKey), store.get(KEYS.server)]);
   if (!key || !server) return loadSession(store);
-  const { seq } = await api.pull(server, key, 0);
-  await store.set(KEYS.lastSeq, String(seq));
+  const { seq, changes } = await api.pull(server, key, 0);
+  await local.commitSync(changes, [], seq);
   await store.set(KEYS.firstSyncDone, '1');
   return loadSession(store);
 }
 
 /** Moves the key aside so a reconnect can prove it is the same install. */
-async function markRemoved(store: SessionStore): Promise<void> {
+export async function markRemoved(store: SessionStore): Promise<void> {
   const key = await store.get(KEYS.deviceKey);
   if (key) await store.set(KEYS.previousDeviceKey, key);
   await store.delete(KEYS.deviceKey);
   await store.set(KEYS.removed, '1');
-}
-
-/**
- * Checks in with the home server when the app opens. Away from home (server unreachable) nothing
- * changes. If the server says this phone was removed, or no longer knows it, the phone must reconnect.
- */
-export async function checkIn(store: SessionStore, api: Api): Promise<Session> {
-  const session = await loadSession(store);
-  const key = await store.get(KEYS.deviceKey);
-  if (session.status !== 'ready' || !key || !session.server) return session;
-  try {
-    const { seq } = await api.pull(session.server, key, session.lastSeq);
-    await store.set(KEYS.lastSeq, String(seq));
-  } catch (error) {
-    if (error instanceof ApiError && (error.reason === 'device_removed' || error.reason === 'unknown_device')) {
-      await markRemoved(store);
-    } else if (!(error instanceof ApiError)) {
-      throw error;
-    }
-  }
-  return loadSession(store);
 }
 
 /** The name the app suggests for this phone at Pairing: its model, or a plain fallback. */
