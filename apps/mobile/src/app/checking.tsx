@@ -1,7 +1,7 @@
 import { router, Stack } from 'expo-router';
 import { useMemo, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
-import { type CheckItem, checked, type Fix, fixActions, needsChecking } from '../checking/mismatches';
+import { type CheckItem, checked, type Fix, fixActions, needsChecking } from '@inventory/shared';
 import { useSession } from '../session/SessionProvider';
 import { SyncStatusBar } from '../ui/SyncStatusBar';
 import { colors, ui } from '../ui/styles';

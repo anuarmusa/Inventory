@@ -1,5 +1,5 @@
 import type { ActionBody, CalendarDate } from '@inventory/shared';
-import type { Inventory } from '../sync/inventory';
+import type { Inventory } from '@inventory/shared';
 import type { Scanned } from './identify';
 import type { FoundProduct, Lookup } from './openFoodFacts';
 

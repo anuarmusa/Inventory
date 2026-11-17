@@ -15,7 +15,7 @@ import {
   supplyOf,
 } from '../../scan/basket';
 import { useBasket } from '../../scan/BasketProvider';
-import { formatDate } from '../../scan/dates';
+import { formatDate } from '@inventory/shared';
 import { LocationPicker, Stepper } from '../../scan/pickers';
 import { useSession } from '../../session/SessionProvider';
 import { colors, ui } from '../../ui/styles';

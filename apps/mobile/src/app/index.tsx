@@ -1,7 +1,7 @@
 import { Redirect, router } from 'expo-router';
 import { useMemo } from 'react';
 import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
-import { localToday, lowStock, nearExpiry, openMismatches, shoppingList } from '../home/lists';
+import { localToday, lowStock, nearExpiry, openMismatches, shoppingList } from '@inventory/shared';
 import { CountTile, NeedsCheckingBar } from '../home/parts';
 import { UpdateBanner } from '../updates/UpdateBanner';
 import { useSession } from '../session/SessionProvider';

@@ -8,6 +8,7 @@ import { appVersionsFrom } from './app-versions.ts';
 import { registerPairingRoutes } from './pairing/routes.ts';
 import { registerPhotoRoutes } from './photo-routes.ts';
 import { registerSyncRoutes } from './sync/routes.ts';
+import { registerWebRoutes } from './web-routes.ts';
 
 export interface AppOptions {
   /** Folder holding the built web app. Served at `/` when it exists. */
@@ -25,6 +26,10 @@ export interface AppOptions {
   now?: () => Date;
   /** The photos folder; photo routes are registered when it and the database are given. */
   photosDir?: string;
+  /** This server's version, shown in the dashboard footer. */
+  serverVersion?: string;
+  /** Where the nightly backup writes its last result. */
+  backupStatusFile?: string;
 }
 
 export function buildApp({
@@ -36,6 +41,8 @@ export function buildApp({
   publicAddress,
   now,
   photosDir,
+  serverVersion = '0.0.0',
+  backupStatusFile,
 }: AppOptions = {}): FastifyInstance {
   const app = Fastify({ logger });
 
@@ -46,6 +53,7 @@ export function buildApp({
     registerSyncRoutes(app, { db, appVersions });
     registerPairingRoutes(app, { db, publicAddress, now });
     if (photosDir) registerPhotoRoutes(app, { db, photosDir });
+    registerWebRoutes(app, { db, appVersions, serverVersion, backupStatusFile });
   }
 
   if (webRoot && existsSync(webRoot)) {

@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { Alert, Pressable, ScrollView, Text } from 'react-native';
 import { Toggle } from '../../scan/pickers';
 import { useSession } from '../../session/SessionProvider';
-import { liveCategories, liveLocations, saveSupply, supplyForm, supplyProblems } from '../../things/things';
+import { liveCategories, liveLocations, saveSupply, supplyForm, supplyProblems } from '@inventory/shared';
 import { Choice, NumberField, TextField } from '../../ui/form';
 import { colors, ui } from '../../ui/styles';
 

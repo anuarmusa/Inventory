@@ -1,5 +1,5 @@
 import { Action, type ActionBody } from '@inventory/shared';
-import { type BarcodeRow, inventoryFrom, type LabelRow, onHand, replay, type SupplyRow } from '../sync/inventory';
+import { type BarcodeRow, inventoryFrom, type LabelRow, onHand, replay, type SupplyRow } from '@inventory/shared';
 import {
   addLocation,
   addScan,
@@ -17,7 +17,7 @@ import {
   setLookup,
   setScans,
 } from './basket';
-import { addMonths, expiryChoices, formatDate, parseTypedDate } from './dates';
+import { addMonths, expiryChoices, formatDate, parseTypedDate } from '@inventory/shared';
 import { identify } from './identify';
 
 const PANTRY = '22222222-2222-4222-8222-222222222222';

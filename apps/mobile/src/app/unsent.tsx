@@ -3,7 +3,8 @@ import { Stack } from 'expo-router';
 import { useState } from 'react';
 import { Alert, FlatList, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import { useSession } from '../session/SessionProvider';
-import { describeAction, editableQuantity, withQuantity } from '../sync/describe';
+import { describeAction } from '@inventory/shared';
+import { editableQuantity, withQuantity } from '../sync/describe';
 import { SyncStatusBar } from '../ui/SyncStatusBar';
 import { colors, ui } from '../ui/styles';
 

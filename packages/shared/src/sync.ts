@@ -88,6 +88,23 @@ export const SyncError = z.object({
 });
 export type SyncError = z.infer<typeof SyncError>;
 
+/** The nightly backup's last result (spec §11), written by the backup script for the dashboard footer. */
+export const BackupStatus = z.object({
+  /** When it finished, ISO time. */
+  at: z.iso.datetime({ offset: true }),
+  ok: z.boolean(),
+  message: z.string().optional(),
+});
+export type BackupStatus = z.infer<typeof BackupStatus>;
+
+/** What the dashboard loads: everything, the app versions, and the footer's server details. */
+export interface WebState {
+  seq: number;
+  changes: Record<string, unknown[]>;
+  app: AppVersions;
+  server: { version: string; lastBackup: BackupStatus | null };
+}
+
 /**
  * The hosted app release, as `latest.json` beside the APK describes it (written by the deploy
  * script, spec §9 and §11).

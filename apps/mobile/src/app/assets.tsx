@@ -3,7 +3,7 @@ import { useMemo, useState } from 'react';
 import { Pressable, ScrollView, Text, TextInput } from 'react-native';
 import { ListRow } from '../home/parts';
 import { useSession } from '../session/SessionProvider';
-import { assetList } from '../things/things';
+import { assetList } from '@inventory/shared';
 import { ui } from '../ui/styles';
 
 /** Every Asset, owned ones first. Asset value isn't shown on the phone (spec §6.1). */

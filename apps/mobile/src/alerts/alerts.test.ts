@@ -1,4 +1,4 @@
-import { type BatchRow, inventoryFrom, type SupplyRow } from '../sync/inventory';
+import { type BatchRow, inventoryFrom, type SupplyRow } from '@inventory/shared';
 import { attention, emptyAlertState, nextNineAm, planAlert } from './alerts';
 
 const supply = (id: string, name: string, extra: Partial<SupplyRow> = {}) =>

@@ -3,7 +3,7 @@ import { connect, KEYS, loadSession } from '../session/session';
 import { fakeServer, memoryStore } from '../test/fakes';
 import { createSyncEngine } from './engine';
 import { memoryLocal } from './local';
-import type { SupplyRow } from './inventory';
+import type { SupplyRow } from '@inventory/shared';
 
 const SUPPLY = '11111111-1111-4111-8111-111111111111';
 const DEVICE = '33333333-3333-4333-8333-333333333333';

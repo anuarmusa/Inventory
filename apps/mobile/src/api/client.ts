@@ -1,5 +1,5 @@
 import { APP_VERSION_HEADER, type AppVersions, type PushRequest, type PushResponse, type RedeemRequest, type RedeemResponse } from '@inventory/shared';
-import type { PulledChanges } from '../sync/inventory';
+import type { PulledChanges } from '@inventory/shared';
 
 /**
  * Talks to the home server. Every failure becomes an ApiError with a reason the screens can explain.

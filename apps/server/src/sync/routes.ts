@@ -87,51 +87,10 @@ export function registerSyncRoutes(app: FastifyInstance, { db, appVersions }: Sy
 
     const clockOffsetMs = Date.now() - Date.parse(body.data.deviceNow);
 
-    const { results, seq } = await db.transaction(async (tx) => {
-      await tx.execute(sql`SELECT pg_advisory_xact_lock(${APPLY_LOCK})`);
-      const results: PushResult[] = [];
-      for (const action of parsed) {
-        // Pushes are safe to retry: an Action already received keeps its first outcome.
-        const [seen] = await tx.select().from(actions).where(eq(actions.id, action.id));
-        if (seen) {
-          const [raised] = await tx.select({ id: mismatches.id }).from(mismatches).where(eq(mismatches.actionId, action.id));
-          results.push({ id: action.id, outcome: seen.outcome, mismatch: Boolean(raised) });
-          continue;
-        }
-        const correctedTime = new Date(Date.parse(action.deviceTime) + clockOffsetMs);
-        const [{ seq }] = (await tx
-          .insert(actions)
-          .values({
-            id: action.id,
-            deviceId: device.id,
-            type: action.type,
-            shapeVersion: action.v,
-            payload: action.payload,
-            deviceTime: new Date(action.deviceTime),
-            correctedTime,
-            outcome: 'skipped',
-          })
-          .returning({ seq: actions.seq })) as [{ seq: number }];
-        const outcome = await applyAction(tx, action, { seq, correctedTime });
-        await tx
-          .update(actions)
-          .set({ outcome: outcome.outcome, result: outcome.result, changedSeq: seq })
-          .where(eq(actions.seq, seq));
-        if (outcome.mismatch) {
-          await tx.insert(mismatches).values({
-            kind: outcome.mismatch.kind,
-            actionId: action.id,
-            details: outcome.mismatch.details,
-            changedSeq: seq,
-          });
-        }
-        results.push({ id: action.id, outcome: outcome.outcome, mismatch: Boolean(outcome.mismatch || outcome.raisedMismatch) });
-      }
-      await tx
-        .update(devices)
-        .set({ clockOffsetMs, appVersion: body.data.appVersion, lastSyncedAt: new Date() })
-        .where(eq(devices.id, device.id));
-      return { results, seq: await currentSeq(tx) };
+    const { results, seq } = await applyActions(db, parsed, {
+      deviceId: device.id,
+      clockOffsetMs,
+      deviceUpdate: { clockOffsetMs, appVersion: body.data.appVersion },
     });
 
     const response: PushResponse = { seq, app: versions, results };
@@ -144,47 +103,7 @@ export function registerSyncRoutes(app: FastifyInstance, { db, appVersions }: Sy
     const since = Number(req.query.since ?? 0);
     if (!Number.isInteger(since) || since < 0) return refuse(reply, 'invalid_request', 'since must be a whole number');
 
-    // One consistent snapshot: rows changed after `since`, up to the `seq` returned.
-    const snapshot = await db.transaction(
-      async (tx) => {
-        // since=0 is a Device's first full sync: everything, including rows no Action has touched yet.
-        const changed = (table: { changedSeq: AnyPgColumn }) => (since === 0 ? undefined : gt(table.changedSeq, since));
-        return {
-          seq: await currentSeq(tx),
-          changes: {
-            settings: await tx.select().from(householdSettings).where(changed(householdSettings)),
-            categories: await tx.select().from(categories).where(changed(categories)),
-            locations: await tx.select().from(locations).where(changed(locations)),
-            supplies: await tx.select().from(supplies).where(changed(supplies)),
-            barcodes: await tx.select().from(barcodes).where(changed(barcodes)),
-            batches: await tx.select().from(batches).where(changed(batches)),
-            assets: await tx.select().from(assets).where(changed(assets)),
-            maintenanceEntries: await tx.select().from(maintenanceEntries).where(changed(maintenanceEntries)),
-            labels: await tx.select().from(labels).where(changed(labels)),
-            mismatches: await tx.select().from(mismatches).where(changed(mismatches)),
-            actions: await tx
-              .select({
-                seq: actions.seq,
-                id: actions.id,
-                deviceId: actions.deviceId,
-                type: actions.type,
-                payload: actions.payload,
-                correctedTime: actions.correctedTime,
-                outcome: actions.outcome,
-                result: actions.result,
-                reversedByActionId: actions.reversedByActionId,
-              })
-              .from(actions)
-              // Old Actions come again when an Undo or Correction changes them.
-              .where(gt(actions.changedSeq, since))
-              .orderBy(actions.seq),
-            // Device names, for "Undone by Kitchen phone" in history. Few rows, so always all.
-            devices: await tx.select({ id: devices.id, name: devices.name }).from(devices),
-          },
-        };
-      },
-      { isolationLevel: 'repeatable read', accessMode: 'read only' },
-    );
+    const snap = await snapshot(db, since);
 
     // Every sync reports the app version, so the Device list can flag out-of-date phones.
     const reported = req.headers[APP_VERSION_HEADER];
@@ -193,6 +112,111 @@ export function registerSyncRoutes(app: FastifyInstance, { db, appVersions }: Sy
       .update(devices)
       .set({ lastSyncedAt: new Date(), ...(appVersion ? { appVersion } : {}) })
       .where(eq(devices.id, auth.device.id));
-    return { ...snapshot, app: appVersions() };
+    return { ...snap, app: appVersions() };
   });
+}
+
+/**
+ * Applies Actions in arrival order, one push at a time across all Devices, inside one transaction.
+ * Safe to retry: an Action already received keeps its first outcome. Used by phone pushes and by the
+ * dashboard.
+ */
+export async function applyActions(
+  db: Db,
+  parsed: Action[],
+  {
+    deviceId,
+    clockOffsetMs,
+    deviceUpdate,
+  }: { deviceId: string; clockOffsetMs: number; deviceUpdate?: { clockOffsetMs: number; appVersion: string } },
+): Promise<{ results: PushResult[]; seq: number }> {
+  return db.transaction(async (tx) => {
+    await tx.execute(sql`SELECT pg_advisory_xact_lock(${APPLY_LOCK})`);
+    const results: PushResult[] = [];
+    for (const action of parsed) {
+      const [seen] = await tx.select().from(actions).where(eq(actions.id, action.id));
+      if (seen) {
+        const [raised] = await tx.select({ id: mismatches.id }).from(mismatches).where(eq(mismatches.actionId, action.id));
+        results.push({ id: action.id, outcome: seen.outcome, mismatch: Boolean(raised) });
+        continue;
+      }
+      const correctedTime = new Date(Date.parse(action.deviceTime) + clockOffsetMs);
+      const [{ seq }] = (await tx
+        .insert(actions)
+        .values({
+          id: action.id,
+          deviceId,
+          type: action.type,
+          shapeVersion: action.v,
+          payload: action.payload,
+          deviceTime: new Date(action.deviceTime),
+          correctedTime,
+          outcome: 'skipped',
+        })
+        .returning({ seq: actions.seq })) as [{ seq: number }];
+      const outcome = await applyAction(tx, action, { seq, correctedTime });
+      await tx.update(actions).set({ outcome: outcome.outcome, result: outcome.result, changedSeq: seq }).where(eq(actions.seq, seq));
+      if (outcome.mismatch) {
+        await tx.insert(mismatches).values({
+          kind: outcome.mismatch.kind,
+          actionId: action.id,
+          details: outcome.mismatch.details,
+          changedSeq: seq,
+        });
+      }
+      results.push({ id: action.id, outcome: outcome.outcome, mismatch: Boolean(outcome.mismatch || outcome.raisedMismatch) });
+    }
+    if (deviceUpdate) {
+      await tx
+        .update(devices)
+        .set({ ...deviceUpdate, lastSyncedAt: new Date() })
+        .where(eq(devices.id, deviceId));
+    }
+    return { results, seq: await currentSeq(tx) };
+  });
+}
+
+/** Everything changed after `since` (everything for 0), as one consistent snapshot up to `seq`. */
+export async function snapshot(db: Db, since: number) {
+  // One consistent snapshot: rows changed after `since`, up to the `seq` returned.
+  return db.transaction(
+    async (tx) => {
+      // since=0 is a Device's first full sync: everything, including rows no Action has touched yet.
+      const changed = (table: { changedSeq: AnyPgColumn }) => (since === 0 ? undefined : gt(table.changedSeq, since));
+      return {
+        seq: await currentSeq(tx),
+        changes: {
+          settings: await tx.select().from(householdSettings).where(changed(householdSettings)),
+          categories: await tx.select().from(categories).where(changed(categories)),
+          locations: await tx.select().from(locations).where(changed(locations)),
+          supplies: await tx.select().from(supplies).where(changed(supplies)),
+          barcodes: await tx.select().from(barcodes).where(changed(barcodes)),
+          batches: await tx.select().from(batches).where(changed(batches)),
+          assets: await tx.select().from(assets).where(changed(assets)),
+          maintenanceEntries: await tx.select().from(maintenanceEntries).where(changed(maintenanceEntries)),
+          labels: await tx.select().from(labels).where(changed(labels)),
+          mismatches: await tx.select().from(mismatches).where(changed(mismatches)),
+          actions: await tx
+            .select({
+              seq: actions.seq,
+              id: actions.id,
+              deviceId: actions.deviceId,
+              type: actions.type,
+              payload: actions.payload,
+              correctedTime: actions.correctedTime,
+              outcome: actions.outcome,
+              result: actions.result,
+              reversedByActionId: actions.reversedByActionId,
+            })
+            .from(actions)
+            // Old Actions come again when an Undo or Correction changes them.
+            .where(gt(actions.changedSeq, since))
+            .orderBy(actions.seq),
+          // Device names, for "Undone by Kitchen phone" in history. Few rows, so always all.
+          devices: await tx.select({ id: devices.id, name: devices.name }).from(devices),
+        },
+      };
+    },
+    { isolationLevel: 'repeatable read', accessMode: 'read only' },
+  );
 }

@@ -1,6 +1,6 @@
-import type { ActionBody } from '@inventory/shared';
-import { describeAction } from '../sync/describe';
-import { type Inventory, type MismatchRow, onHand } from '../sync/inventory';
+import type { ActionBody } from '../actions.ts';
+import { describeAction } from './describe.ts';
+import { type Inventory, type MismatchRow, onHand } from './inventory.ts';
 
 /**
  * Needs checking (spec §4.4): what each open Mismatch says, and the fixes it offers. Resolving is

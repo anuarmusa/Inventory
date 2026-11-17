@@ -1,6 +1,6 @@
 import * as Notifications from 'expo-notifications';
 import { useEffect, useRef } from 'react';
-import { localToday } from '../home/lists';
+import { localToday } from '@inventory/shared';
 import { KEYS } from '../session/session';
 import { useSession } from '../session/SessionProvider';
 import { phoneStore } from '../session/store';

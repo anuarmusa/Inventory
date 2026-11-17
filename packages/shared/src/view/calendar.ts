@@ -1,4 +1,4 @@
-import type { CalendarDate } from '@inventory/shared';
+import type { CalendarDate } from '../dates.ts';
 
 /** Reads a date typed as day/month/year (31/12/2026, 31-12-26, 31.12.2026). Null when it isn't one. */
 export function parseTypedDate(text: string): CalendarDate | null {

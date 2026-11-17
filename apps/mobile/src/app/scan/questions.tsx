@@ -2,7 +2,7 @@ import type { CalendarDate } from '@inventory/shared';
 import { Redirect, router } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
-import { localToday } from '../../home/lists';
+import { localToday } from '@inventory/shared';
 import {
   answerExpiry,
   answerNewProduct,
@@ -15,7 +15,7 @@ import {
   type SupplyChoice,
 } from '../../scan/basket';
 import { useBasket } from '../../scan/BasketProvider';
-import { expiryChoices, formatDate, parseTypedDate } from '../../scan/dates';
+import { expiryChoices, formatDate, parseTypedDate } from '@inventory/shared';
 import { OFF_ATTRIBUTION } from '../../scan/openFoodFacts';
 import { Stepper, styles as pick, SupplyPicker } from '../../scan/pickers';
 import { useSession } from '../../session/SessionProvider';

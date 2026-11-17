@@ -1,0 +1,53 @@
+/* Colours and page basics shared by every web page, light and dark. */
+:root {
+  --ink: #1d232b;
+  --mute: #6b7480;
+  --line: #dfe3e8;
+  --accent: #0b7a5c;
+  --warn: #9a4a00;
+  --warn-soft: #fff1dc;
+  --bad: #b42318;
+  --bad-soft: #fdecea;
+  --page: #ffffff;
+  --soft: #f3f4f6;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --ink: #e8ebef;
+    --mute: #9aa3ad;
+    --line: #333a42;
+    --accent: #3fb68f;
+    --warn: #f0b46b;
+    --warn-soft: #3a2a14;
+    --bad: #f2867d;
+    --bad-soft: #3b1d1b;
+    --page: #15191e;
+    --soft: #20262d;
+  }
+}
+
+body {
+  margin: 0;
+  background: var(--page);
+  color: var(--ink);
+  font: 16px/1.5 system-ui, 'Segoe UI', Roboto, sans-serif;
+}
+
+.badge {
+  display: inline-block;
+  border-radius: 999px;
+  padding: 1px 8px;
+  font-size: 12px;
+  font-weight: 600;
+  background: var(--soft);
+  color: var(--mute);
+}
+.badge.warn {
+  background: var(--warn-soft);
+  color: var(--warn);
+}
+.badge.bad {
+  background: var(--bad-soft);
+  color: var(--bad);
+}

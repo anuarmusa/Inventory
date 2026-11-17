@@ -1,5 +1,5 @@
 import { isShopWeighedCode, LabelCode } from '@inventory/shared';
-import type { BarcodeRow, Inventory, LabelRow, SupplyRow } from '../sync/inventory';
+import type { BarcodeRow, Inventory, LabelRow, SupplyRow } from '@inventory/shared';
 
 /**
  * What a scan is (spec §6.2): one of the household's product Barcodes, a product the household

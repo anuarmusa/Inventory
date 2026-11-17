@@ -3,7 +3,7 @@ import { asc, eq, inArray, sql } from 'drizzle-orm';
 import { db } from '../db/client';
 import { appMeta, serverRows, unsentActions } from '../db/schema';
 import { KEYS } from '../session/session';
-import { inventoryFrom, type PulledChanges, rowKey, TABLE_NAMES, type TableName } from './inventory';
+import { inventoryFrom, type PulledChanges, rowKey, TABLE_NAMES, type TableName } from '@inventory/shared';
 import type { LocalStore } from './local';
 
 /** On a repeated row, take the newly pulled data. */

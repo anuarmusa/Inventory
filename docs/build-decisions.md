@@ -97,3 +97,15 @@ Decisions made while building v1 ([`docs/spec/v1.md`](spec/v1.md)) that the spec
 - **Permission** is asked the first time there is something to tell, not at first launch.
 - **Limit**: if the phone isn't opened for days, the 09:00 summary reflects what it knew when it was last open. That's acceptable, since Alerts are about the phone's own data.
 - **New native module** (`expo-notifications`), so the next APK build is needed.
+
+## Web dashboard (#33)
+
+- **One set of view rules for phone and web.** The phone's pure view code moved to `packages/shared/src/view`: the local view and replay, Home's lists, Action descriptions, Needs checking, History, the forms, Supply details and dates. The dashboard computes exactly what the phones show, from the same rows.
+- **The dashboard is a Device.** `POST /web/actions` records Actions as the "Dashboard" Device (a fixed id, created on first use, whose key is never usable), on the server's clock. Its changes show in History as "Dashboard" and can be undone like a phone's. `GET /web/state` returns the full snapshot (same as a first pull) plus the footer details. Both are open on the LAN, like the rest of the server (no login in v1).
+- **Refreshing**: the dashboard reloads every 30 s and after each change. It does not stream.
+- **Layout (variant A)**: Needs checking across the top only when Mismatches are open; a 2×2 grid (Shopping list, Near expiry, Low stock, Assets with the total for Assets still owned); Recent activity in a sidebar with Device, time and Undo / Bring back.
+- **Fixes on the web**: Count it opens an inline count box, Redo opens a Supply picker, and Merge confirms with the browser's dialog ("This can't be undone").
+- **Shopping list ticks** are kept in the browser (`localStorage`), like a phone keeps its own.
+- **Editing**: Supplies, Assets, and Locations & Categories pages with the same forms and rules as the phone (only changed fields sent; Delete hides and can be undone; Locations and Categories delete only when empty). Moving, maintenance and Dispose stay on the phone's Asset page.
+- **Footer on every web page** (download page included): "Server v0.1.0" from the server package's version (`SERVER_VERSION` overrides), and the last backup from `BACKUP_STATUS_FILE` (written by the backup script, #38). The badge is red when the backup failed, and says "No backup yet" when there is none.
+- **Dashboard styles are scoped under `.dash`**, so they don't restyle the download page; colours moved to a shared `theme.css`.

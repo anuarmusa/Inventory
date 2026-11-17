@@ -1,6 +1,6 @@
-import type { ActionBody } from '@inventory/shared';
-import type { AssetRow, BatchRow, Inventory, SupplyRow } from '../sync/inventory';
-import { onHand } from '../sync/inventory';
+import type { ActionBody } from '../actions.ts';
+import type { AssetRow, BatchRow, Inventory, SupplyRow } from './inventory.ts';
+import { onHand } from './inventory.ts';
 
 /**
  * Assets, Locations, Categories and the forms that edit them (spec §3, §6.3, §13). Pure helpers;

@@ -1,32 +1,33 @@
-import { useEffect, useState } from 'react';
-import { HealthResponse } from '@inventory/shared';
+import { useHousehold } from './dashboard/household.ts';
+import { Footer, Layout } from './dashboard/Layout.tsx';
+import { AssetsPage, PlacesPage, SuppliesPage } from './dashboard/Manage.tsx';
+import { Overview } from './dashboard/Overview.tsx';
 import { DownloadPage } from './download/DownloadPage.tsx';
 
-type ServerState = 'checking' | 'ok' | 'unreachable';
-
-/** Pages by path: /app is the download page; the dashboard lives at / (built in its own slice). */
+/** Pages by path: /app is the download page; everything else is the dashboard. Every page has the footer. */
 export function App({ path = window.location.pathname }: { path?: string }) {
-  if (path === '/app' || path.startsWith('/app/')) return <DownloadPage />;
-  return <Home />;
+  if (path === '/app' || path.startsWith('/app/')) {
+    return (
+      <>
+        <DownloadPage />
+        <Footer />
+      </>
+    );
+  }
+  return <Dashboard path={path} />;
 }
 
-export function Home({ initialState = 'checking' }: { initialState?: ServerState }) {
-  const [server, setServer] = useState<ServerState>(initialState);
-
-  useEffect(() => {
-    fetch('/health')
-      .then((res) => res.json())
-      .then((body) => setServer(HealthResponse.safeParse(body).success ? 'ok' : 'unreachable'))
-      .catch(() => setServer('unreachable'));
-  }, []);
-
-  return (
-    <main style={{ fontFamily: 'system-ui, sans-serif', padding: 24 }}>
-      <h1>Our home</h1>
-      <p>Server: {server}</p>
-      <p>
-        <a href="/app">Get the app</a>
-      </p>
-    </main>
-  );
+function Dashboard({ path }: { path: string }) {
+  const household = useHousehold();
+  const page =
+    path === '/supplies' ? (
+      <SuppliesPage household={household} />
+    ) : path === '/assets' ? (
+      <AssetsPage household={household} />
+    ) : path === '/places' ? (
+      <PlacesPage household={household} />
+    ) : (
+      <Overview household={household} />
+    );
+  return <Layout path={['/supplies', '/assets', '/places'].includes(path) ? path : '/'}>{page}</Layout>;
 }

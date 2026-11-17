@@ -1,10 +1,10 @@
 import { router, Stack, useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
 import { Alert, Pressable, Text, View } from 'react-native';
-import { mergeBody } from '../checking/mismatches';
+import { mergeBody } from '@inventory/shared';
 import { Toggle } from '../scan/pickers';
 import { useSession } from '../session/SessionProvider';
-import { onHand } from '../sync/inventory';
+import { onHand } from '@inventory/shared';
 import { colors, ui } from '../ui/styles';
 
 /**

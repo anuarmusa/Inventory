@@ -8,7 +8,7 @@ import migrations from '../../drizzle/migrations';
 import { createApi } from '../api/client';
 import { db } from '../db/client';
 import { createSyncEngine, type SyncState } from '../sync/engine';
-import { emptyInventory, type Inventory, replay } from '../sync/inventory';
+import { emptyInventory, type Inventory, replay } from '@inventory/shared';
 import { uploadPhotos } from '../photos/phonePhotos';
 import { phoneLocal } from '../sync/phoneLocal';
 import { connect, type ConnectRequest, finishFirstSync, KEYS, loadSession, type Session } from './session';

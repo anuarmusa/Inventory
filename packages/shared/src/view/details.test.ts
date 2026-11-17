@@ -1,5 +1,6 @@
-import { type BarcodeRow, type BatchRow, inventoryFrom, type SupplyRow } from '../sync/inventory';
-import { supplyDetails, previewUse } from './details';
+import { describe, expect, it } from 'vitest';
+import { type BarcodeRow, type BatchRow, inventoryFrom, type SupplyRow } from './inventory.ts';
+import { supplyDetails, previewUse } from './details.ts';
 
 const RICE = 'rice';
 const supply: SupplyRow = {
