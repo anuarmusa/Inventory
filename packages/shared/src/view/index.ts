@@ -10,3 +10,4 @@ export * from './history.ts';
 export * from './things.ts';
 export * from './details.ts';
 export * from './calendar.ts';
+export * from './labels.ts';

@@ -109,3 +109,14 @@ Decisions made while building v1 ([`docs/spec/v1.md`](spec/v1.md)) that the spec
 - **Editing**: Supplies, Assets, and Locations & Categories pages with the same forms and rules as the phone (only changed fields sent; Delete hides and can be undone; Locations and Categories delete only when empty). Moving, maintenance and Dispose stay on the phone's Asset page.
 - **Footer on every web page** (download page included): "Server v0.1.0" from the server package's version (`SERVER_VERSION` overrides), and the last backup from `BACKUP_STATUS_FILE` (written by the backup script, #38). The badge is red when the backup failed, and says "No backup yet" when there is none.
 - **Dashboard styles are scoped under `.dash`**, so they don't restyle the download page; colours moved to a shared `theme.css`.
+
+## Label printing from the dashboard (#34)
+
+- **The PDF is made in the browser** with `jspdf`. QR codes are drawn as filled squares from `qrcode`'s module grid (error correction M), so they print sharp on any printer.
+- **Sheet geometry**: A4 with 3 × 7 labels of 63.5 × 38.1 mm, the common 21-up layout (left margin 7.2 mm, top margin 15.15 mm, column pitch 66.04 mm). The QR is 30 mm. Labels fill across then down; a job longer than the sheet carries on to new pages starting at position 1.
+- **Label contents**: an assigned Label shows the QR, the thing's name (bold, up to 4 lines) and the code in small print; a Blank label shows the QR and a large code. The Location isn't printed.
+- **New codes are linked before the PDF is made.** "Print Labels for N new things", and Print on a thing with no Label, record `label.attached` as the Dashboard first, so a stuck-on Label always opens its thing. Blank labels are not recorded; they become Labels when a phone attaches them.
+- **Codes** are 5 characters from 0–9 and A–Z without I, L, O and U, never one already used (retired ones included).
+- **Reprint** prints the same code and records nothing. **Replace** records `label.replaced` (a new code on the same thing; the old one is retired).
+- **Print dialog**: a number box and a clickable sheet map. Positions before the start are greyed (already used), and this job's labels are filled.
+- **Print entry points** are all on the new Labels page: the list there covers every Asset and Location. The dashboard has no Asset or Location detail page in v1.
