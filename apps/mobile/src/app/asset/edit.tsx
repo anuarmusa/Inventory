@@ -2,6 +2,7 @@ import { randomUUID } from 'expo-crypto';
 import { router, Stack, useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
 import { Alert, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
+import { attachLabel } from '../../scan/labels';
 import { useSession } from '../../session/SessionProvider';
 import { assetForm, assetProblems, liveCategories, liveLocations, parseRinggit, saveAsset } from '../../things/things';
 import { Choice, DateField, TextField } from '../../ui/form';
@@ -9,7 +10,8 @@ import { colors, ui } from '../../ui/styles';
 
 /** New Asset, or edit one. Deleting hides it and can be undone from its History. */
 export default function EditAsset() {
-  const { id } = useLocalSearchParams<{ id?: string }>();
+  /** `label`: a Blank label to attach to the new Asset. */
+  const { id, label } = useLocalSearchParams<{ id?: string; label?: string }>();
   const { inventory, record } = useSession();
   const existing = id ? inventory.assets[id] : undefined;
   const [form, setForm] = useState(() => assetForm(existing));
@@ -21,6 +23,7 @@ export default function EditAsset() {
   const save = async () => {
     const body = saveAsset(existing, { ...form, priceSen: priceSen ?? null }, randomUUID);
     if (body) await record(body);
+    if (label && body?.type === 'asset.created') await record(attachLabel(label, { assetId: body.payload.assetId }));
     if (!existing && body?.type === 'asset.created') router.replace({ pathname: '/asset/[id]', params: { id: body.payload.assetId } });
     else router.back();
   };
@@ -38,6 +41,7 @@ export default function EditAsset() {
   return (
     <ScrollView style={{ backgroundColor: '#fff' }} contentContainerStyle={[ui.screen, { paddingTop: 16 }]} keyboardShouldPersistTaps="handled">
       <Stack.Screen options={{ headerShown: true, title: existing ? `Edit ${existing.name}` : 'New Asset' }} />
+      {label && <Text style={ui.mute}>Label {label} will be attached to it.</Text>}
       <TextField label="Name" value={form.name} onChange={(v) => set('name', v)} placeholder='e.g. Samsung 55" TV' />
       <Choice label="Category" options={liveCategories(inventory)} value={form.categoryId} onChange={(v) => set('categoryId', v)} noneLabel="None" />
       <Choice label="Location" options={liveLocations(inventory)} value={form.locationId} onChange={(v) => set('locationId', v)} noneLabel="Not set" />

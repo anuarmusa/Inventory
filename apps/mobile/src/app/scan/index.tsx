@@ -1,11 +1,12 @@
 import { CameraView, useCameraPermissions } from 'expo-camera';
-import { router } from 'expo-router';
-import { useRef, useState } from 'react';
+import { router, useFocusEffect } from 'expo-router';
+import { useCallback, useRef, useState } from 'react';
 import { Alert, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSession } from '../../session/SessionProvider';
 import { addScan, lineQuantity, supplyOf } from '../../scan/basket';
 import { useBasket } from '../../scan/BasketProvider';
 import { identify, NOT_OURS, type Scanned } from '../../scan/identify';
+import { RETIRED_MESSAGE, whatLabelOpens } from '../../scan/labels';
 import { colors, ui } from '../../ui/styles';
 
 /** The same code seen again within this time is the camera still looking at it, not a new scan. */
@@ -22,6 +23,16 @@ export default function Scan() {
   const [choosing, setChoosing] = useState<Scanned | null>(null);
   const [message, setMessage] = useState<{ text: string; warn: boolean } | null>(null);
   const last = useRef<{ text: string; at: number } | null>(null);
+  // While a page opened from a scan is on top, the camera underneath must not act on what it sees.
+  const focused = useRef(true);
+  useFocusEffect(
+    useCallback(() => {
+      focused.current = true;
+      return () => {
+        focused.current = false;
+      };
+    }, []),
+  );
   const shopping = basket.lines.length > 0;
 
   const addToBasket = (scanned: Scanned) => {
@@ -34,7 +45,7 @@ export default function Scan() {
     const now = Date.now();
     const seen = last.current;
     last.current = { text: data, at: now };
-    if (choosing || (seen && seen.text === data && now - seen.at < SAME_CODE_MS)) return;
+    if (!focused.current || choosing || (seen && seen.text === data && now - seen.at < SAME_CODE_MS)) return;
 
     const scanned = identify(data, inventory);
     switch (scanned.kind) {
@@ -42,17 +53,12 @@ export default function Scan() {
         setMessage({ text: NOT_OURS, warn: true });
         return;
       case 'label': {
-        // Asset and Location pages come with "Assets and Locations in the app"; the basket waits.
-        const label = scanned.label;
-        const thing = label?.assetId
-          ? inventory.assets[label.assetId]?.name
-          : label?.locationId
-            ? inventory.locations[label.locationId]?.name
-            : null;
-        Alert.alert(
-          `Label ${scanned.code}`,
-          label?.retiredAt ? 'This Label was replaced.' : thing ? `This Label is on ${thing}.` : 'This is a Blank label.',
-        );
+        // A Label opens its Asset or Location from anywhere; a basket waits behind it.
+        const opens = whatLabelOpens(inventory, scanned.code);
+        if (opens.kind === 'retired') setMessage({ text: RETIRED_MESSAGE, warn: true });
+        else if (opens.kind === 'asset') router.push({ pathname: '/asset/[id]', params: { id: opens.assetId } });
+        else if (opens.kind === 'location') router.push({ pathname: '/location/[id]', params: { id: opens.locationId } });
+        else router.push({ pathname: '/label/[code]', params: { code: scanned.code } });
         return;
       }
       default:

@@ -6,6 +6,7 @@ import { history } from '../../history/history';
 import { HistoryList } from '../../history/HistoryList';
 import { localToday } from '../../home/lists';
 import { formatDate } from '../../scan/dates';
+import { labelOf } from '../../scan/labels';
 import { useSession } from '../../session/SessionProvider';
 import { DISPOSE_REASONS, liveLocations, parseRinggit, ringgit } from '../../things/things';
 import { SyncStatusBar } from '../../ui/SyncStatusBar';
@@ -26,7 +27,7 @@ export default function AssetPage() {
     () => Object.values(inventory.maintenanceEntries).filter((m) => m.assetId === id).sort((a, b) => (a.date < b.date ? 1 : -1)),
     [inventory, id],
   );
-  const label = useMemo(() => Object.values(inventory.labels).find((l) => l.assetId === id && !l.retiredAt), [inventory, id]);
+  const label = useMemo(() => (id ? labelOf(inventory, { assetId: id }) : null), [inventory, id]);
   const [panel, setPanel] = useState<Panel>(null);
   const [note, setNote] = useState('');
   const [cost, setCost] = useState('');
@@ -77,7 +78,7 @@ export default function AssetPage() {
       <Row k="Shop" v={asset.shop} />
       <Row k="Serial" v={asset.serialNumber} />
       <Row k="Warranty" v={asset.warrantyEnd ? `until ${formatDate(asset.warrantyEnd)}${warrantyOver ? ' (ended)' : ''}` : null} />
-      <Row k="Label" v={label ? label.code : 'No Label yet'} />
+      <Row k="Label" v={label ?? 'No Label yet: scan a Blank label to attach one'} />
       <Row k="Photos" v={asset.photoIds.length ? `${asset.photoIds.length} photo${asset.photoIds.length > 1 ? 's' : ''}` : 'None yet'} />
       {asset.notes && <Text style={ui.body}>{asset.notes}</Text>}
 

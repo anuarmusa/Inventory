@@ -2,6 +2,7 @@ import { router, Stack, useLocalSearchParams } from 'expo-router';
 import { useMemo, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { formatDate } from '../../scan/dates';
+import { labelOf } from '../../scan/labels';
 import { useSession } from '../../session/SessionProvider';
 import { locationContents } from '../../things/things';
 import { SyncStatusBar } from '../../ui/SyncStatusBar';
@@ -16,7 +17,7 @@ export default function LocationPage() {
   const { inventory } = useSession();
   const location = id ? inventory.locations[id] : undefined;
   const contents = useMemo(() => (id ? locationContents(inventory, id) : null), [inventory, id]);
-  const label = useMemo(() => Object.values(inventory.labels).find((l) => l.locationId === id && !l.retiredAt), [inventory, id]);
+  const label = useMemo(() => (id ? labelOf(inventory, { locationId: id }) : null), [inventory, id]);
   const [counting, setCounting] = useState(false);
 
   if (!location || !contents) {
@@ -31,7 +32,7 @@ export default function LocationPage() {
     <ScrollView style={{ backgroundColor: '#fff' }} contentContainerStyle={[ui.screen, { paddingTop: 16 }]}>
       <Stack.Screen options={{ headerShown: true, title: `📍 ${location.name}` }} />
       <SyncStatusBar />
-      <Text style={ui.mute}>{label ? `Label ${label.code}` : 'No Label yet'}</Text>
+      <Text style={ui.mute}>{label ? `Label ${label}` : 'No Label yet: scan a Blank label to attach one'}</Text>
 
       <Text style={styles.heading}>Supplies here</Text>
       {contents.batches.length === 0 && <Text style={ui.mute}>Nothing.</Text>}
