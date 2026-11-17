@@ -1,6 +1,6 @@
-import { Redirect } from 'expo-router';
+import { Redirect, router } from 'expo-router';
 import { useMemo } from 'react';
-import { ActivityIndicator, Alert, Pressable, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
 import { localToday, lowStock, nearExpiry, openMismatches, shoppingList } from '../home/lists';
 import { CountTile, NeedsCheckingBar, UpdateBanner } from '../home/parts';
 import { useSession } from '../session/SessionProvider';
@@ -53,8 +53,7 @@ export default function Home() {
       </View>
       <Pressable
         style={styles.scan}
-        // The scan flows come with "Scan: I bought some" and "Scan: I used some".
-        onPress={() => Alert.alert('Scan', 'Scanning comes in the next update.')}
+        onPress={() => router.push('/scan')}
         accessibilityRole="button"
         accessibilityLabel="Scan a product or a Label"
       >
