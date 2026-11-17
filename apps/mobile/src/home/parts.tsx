@@ -19,14 +19,6 @@ export function CountTile({ label, count, href }: { label: string; count: number
   );
 }
 
-/**
- * Slot for the update banner, shown when a new app version is out. "App updates" fills it; until
- * then it shows nothing.
- */
-export function UpdateBanner() {
-  return null;
-}
-
 /** The red "N need checking" bar, when Mismatches are open. It opens the list. */
 export function NeedsCheckingBar({ count }: { count: number }) {
   if (count === 0) return null;

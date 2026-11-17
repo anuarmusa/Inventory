@@ -3,6 +3,7 @@ import type { AnyPgColumn } from 'drizzle-orm/pg-core';
 import type { FastifyInstance, FastifyReply } from 'fastify';
 import {
   Action,
+  APP_VERSION_HEADER,
   type AppVersions,
   compareVersions,
   LATEST_ACTION_SHAPE_VERSION,
@@ -185,7 +186,13 @@ export function registerSyncRoutes(app: FastifyInstance, { db, appVersions }: Sy
       { isolationLevel: 'repeatable read', accessMode: 'read only' },
     );
 
-    await db.update(devices).set({ lastSyncedAt: new Date() }).where(eq(devices.id, auth.device.id));
+    // Every sync reports the app version, so the Device list can flag out-of-date phones.
+    const reported = req.headers[APP_VERSION_HEADER];
+    const appVersion = typeof reported === 'string' && /^\d+\.\d+\.\d+$/.test(reported) ? reported : undefined;
+    await db
+      .update(devices)
+      .set({ lastSyncedAt: new Date(), ...(appVersion ? { appVersion } : {}) })
+      .where(eq(devices.id, auth.device.id));
     return { ...snapshot, app: appVersions() };
   });
 }

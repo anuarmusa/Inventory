@@ -33,12 +33,13 @@ interface SessionContext {
 }
 
 const Context = createContext<SessionContext | null>(null);
-const api = createApi();
+const APP_VERSION = Constants.expoConfig?.version ?? '0.0.0';
+const api = createApi(fetch, undefined, APP_VERSION);
 const engine = createSyncEngine({
   session: phoneStore,
   local: phoneLocal,
   api,
-  appVersion: Constants.expoConfig?.version ?? '0.0.0',
+  appVersion: APP_VERSION,
   newId: randomUUID,
 });
 

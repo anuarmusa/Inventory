@@ -74,3 +74,17 @@ Decisions made while building v1 ([`docs/spec/v1.md`](spec/v1.md)) that the spec
 - **Where photos appear**: Asset photos and the receipt photo, on the Asset page. Barcode photos (from new products) aren't taken in v1; the field stays empty.
 - **Two phones adding photos to the same Asset at once**: `photoIds` is a detail edit, so the last one to arrive wins and the other photo is dropped from the list (the file stays on the server). This is rare in a household, and accepted for v1.
 - **New native modules** (image picker, image manipulator, file system) mean the next APK build is needed before photos work on a phone.
+
+## App updates (#36)
+
+- **The banner's "what's new"** comes from `latest.json`'s `notes`, now carried in every sync answer (`app.notes`), so there is still no separate polling.
+- **Every sync reports the app version.** The push already sent it; pulls now send an `x-app-version` header and the server records it. A phone that only ever pulls still shows its version in the Device list, which already flags out-of-date Devices.
+- **The phone remembers the last reported versions** (`app_meta.app_versions`), so the banner shows offline after a restart. "Later" dismisses one version only; the next version shows again.
+- **Red "Update needed to sync"** shows when this app is below the reported minimum, or when a push was refused as too old. It can't be dismissed, and it explains that changes wait on the phone.
+- **Update**:
+  1. Syncs first (only when the server still accepts this version).
+  2. Downloads `/apk/download` into the cache folder.
+  3. Opens Android's installer with a content URI (`expo-intent-launcher`, `REQUEST_INSTALL_PACKAGES`).
+
+  The first time, a note explains Android's "Install unknown apps" switch. If the download fails, the app points to the download page as the fallback.
+- **New native module** (`expo-intent-launcher`) and a new permission, so the next APK build is needed before Update works on a phone.

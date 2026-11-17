@@ -3,7 +3,7 @@ import type { SyncState } from './engine';
 import { describeAction, editableQuantity, statusLine, withQuantity } from './describe';
 import { inventoryFrom, type SupplyRow } from './inventory';
 
-const idle: SyncState = { home: true, syncing: false, problem: null, lastSyncedAt: null };
+const idle: SyncState = { home: true, syncing: false, problem: null, lastSyncedAt: null, app: null };
 
 describe('the status bar', () => {
   it('says home and synced, or away with the unsent count', () => {

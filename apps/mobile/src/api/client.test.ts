@@ -10,6 +10,18 @@ describe('api client', () => {
     await expect(api.pull('http://192.168.1.10', 'key', 0)).resolves.toEqual({ seq: 42 });
   });
 
+  it('reports the app version on every sync request', async () => {
+    const seen: (Record<string, string> | undefined)[] = [];
+    const record = (async (_url: string, init?: RequestInit) => {
+      seen.push(init?.headers as Record<string, string>);
+      return new Response(JSON.stringify({ seq: 1, app: { latest: null, minimum: '0.1.0' }, results: [] }), { status: 200 });
+    }) as typeof fetch;
+    const api = createApi(record, undefined, '1.3.2');
+    await api.pull('http://192.168.1.10', 'key', 0);
+    await api.push('http://192.168.1.10', 'key', { deviceNow: '2026-11-17T09:00:00Z', appVersion: '1.3.2', actions: [] });
+    expect(seen.map((h) => h?.['x-app-version'])).toEqual(['1.3.2', '1.3.2']);
+  });
+
   it('turns server refusals into reasons the screens can explain', async () => {
     const api = createApi(respond(401, { error: 'device_removed', message: 'removed' }));
     await expect(api.pull('http://192.168.1.10', 'key', 0)).rejects.toMatchObject({ reason: 'device_removed' });

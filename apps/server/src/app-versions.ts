@@ -17,5 +17,8 @@ export function readLatestRelease(apkDir: string | undefined): AppRelease | null
 }
 
 export function appVersionsFrom(apkDir: string | undefined): () => AppVersions {
-  return () => ({ latest: readLatestRelease(apkDir)?.version ?? null, minimum: MIN_APP_VERSION });
+  return () => {
+    const release = readLatestRelease(apkDir);
+    return { latest: release?.version ?? null, minimum: MIN_APP_VERSION, notes: release?.notes ?? null };
+  };
 }
