@@ -50,7 +50,8 @@
         }
       ],
       "expo-notifications",
-      "./plugins/with-short-native-build-dir"
+      "./plugins/with-short-native-build-dir",
+      "./plugins/with-release-signing"
     ],
     "experiments": {
       "typedRoutes": true
