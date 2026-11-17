@@ -27,13 +27,14 @@ export function UpdateBanner() {
   return null;
 }
 
-/** The red "N need checking" bar, when Mismatches are open. "Mismatch fixes" makes it open the list. */
+/** The red "N need checking" bar, when Mismatches are open. It opens the list. */
 export function NeedsCheckingBar({ count }: { count: number }) {
   if (count === 0) return null;
   return (
-    <View style={ui.error} accessibilityRole="alert">
+    <Pressable style={[ui.error, { flexDirection: 'row', justifyContent: 'space-between' }]} onPress={() => router.push('/checking')} accessibilityRole="button">
       <Text style={[ui.errorText, { fontWeight: '600' }]}>⚠️ {count} need checking</Text>
-    </View>
+      <Text style={ui.errorText}>›</Text>
+    </Pressable>
   );
 }
 

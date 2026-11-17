@@ -29,3 +29,15 @@ Decisions made while building v1 ([`docs/spec/v1.md`](spec/v1.md)) that the spec
 - **Unsent Undo/Correction** are replayed on the phone from the server's recorded result. An Undo of an Undo shows once the server has applied it.
 - **Put away also gets the Undo toast**, which drops every Action it recorded.
 - **Asset History** is computed by the same code; it shows once the Asset page exists ("Assets and Locations in the app").
+
+## Mismatch fixes and Merge (#25)
+
+- **Fixes per Mismatch** (spec §4.4):
+  - **Shortfall:** Count it (a Stocktake screen, then resolved as counted) or Accept.
+  - **Skipped Action:** Accept, or "Redo it on another Supply". Redo is only offered when the Action was a "used" or Stocktake on a Supply that is gone; other skipped Actions are only accepted.
+  - **Barcode on two Supplies:** Keep on the first, Move to the other (`barcode.moved`), or Merge the two.
+  - **Blank label attached to two things:** only "Keep it there". There is no Action to move a Label to another thing, and Replace Label belongs to the dashboard (#34).
+- **Merge** asks which Supply keeps everything, shows each one's amount (duplicates often share a name), and confirms with "This can't be undone".
+- **Possible duplicate**: another live Supply with the same name, ignoring case and spaces. It shows as a hint on the Supply page with a link to Merge. It is not a Mismatch.
+- **Resolved Mismatches stay in history**: the Needs checking screen lists the last 20 under "Checked", with how each was resolved.
+- **The Count it screen** (`/count/[supplyId]`) is a plain Stocktake of one Supply, so the Location page's "Count what's here" (#30) can reuse it.
