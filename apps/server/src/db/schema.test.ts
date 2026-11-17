@@ -1,53 +1,24 @@
 import { randomUUID } from 'node:crypto';
-import pg from 'pg';
+import type pg from 'pg';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import { loadDevEnv } from '../env.ts';
-import { runMigrations } from './migrations.ts';
+import { createTestDatabase, databaseAvailable, type TestDatabase } from '../test/database.ts';
 
 // Runs the real migrations into a throwaway database, then checks the rules Postgres enforces.
 // Skipped when no database is configured (e.g. without Docker running).
-loadDevEnv();
-const baseUrl = process.env.DATABASE_URL;
-const testDb = `inventory_test_${Date.now()}`;
-
-async function adminQuery(sql: string): Promise<void> {
-  const client = new pg.Client({ connectionString: baseUrl });
-  await client.connect();
-  try {
-    await client.query(sql);
-  } finally {
-    await client.end();
-  }
-}
-
-async function reachable(): Promise<boolean> {
-  if (!baseUrl) return false;
-  try {
-    await adminQuery('SELECT 1');
-    return true;
-  } catch {
-    return false;
-  }
-}
-
-const canRun = await reachable();
+const canRun = await databaseAvailable();
 
 describe.skipIf(!canRun)('database schema', () => {
+  let testDb: TestDatabase;
   let client: pg.Client;
   const id = () => randomUUID();
 
   beforeAll(async () => {
-    await adminQuery(`CREATE DATABASE ${testDb}`);
-    const url = new URL(baseUrl!);
-    url.pathname = `/${testDb}`;
-    await runMigrations(url.toString());
-    client = new pg.Client({ connectionString: url.toString() });
-    await client.connect();
+    testDb = await createTestDatabase();
+    client = testDb.client;
   });
 
   afterAll(async () => {
-    await client?.end();
-    await adminQuery(`DROP DATABASE IF EXISTS ${testDb}`);
+    await testDb?.close();
   });
 
   it('starts with the household Near-expiry default of 7 days', async () => {
