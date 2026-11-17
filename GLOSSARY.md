@@ -78,6 +78,14 @@ _Avoid_: Restock list, order
 One change a device made to the inventory, recorded as what was done, such as using 2 of a supply, adding a batch, or disposing of an asset. Devices record actions while away from home and send them to the server when they return; the server combines the actions from every device.
 _Avoid_: Event, edit, transaction, update
 
+**Undo**:
+An action that cancels an earlier action that has already reached the server, putting things back as they were. The earlier action stays in history, marked as undone. An undo can itself be undone.
+_Avoid_: Revert, delete, rollback
+
+**Correction**:
+An action that replaces an earlier action with the right values, such as "used 3, not 2" or "it was Milo, not rice". The earlier action stays in history, marked as fixed.
+_Avoid_: Edit, amendment, adjustment
+
 **Mismatch**:
 A problem found when the server combines actions from several devices, such as a device using more of a supply than was on hand, an action on something already disposed or deleted, or one barcode given to two supplies. The action is applied as far as it can be and the mismatch is kept so someone can check it.
 _Avoid_: Conflict, error, sync failure
