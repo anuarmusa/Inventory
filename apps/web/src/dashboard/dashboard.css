@@ -200,6 +200,37 @@
   align-items: center;
 }
 
+.dash .print {
+  max-width: 520px;
+}
+.dash .sheet {
+  display: grid;
+  gap: 4px;
+  aspect-ratio: 210 / 297;
+  max-width: 260px;
+  padding: 8px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  margin: 8px 0;
+}
+.dash .sheet .cell {
+  padding: 0;
+  border-radius: 4px;
+  font-size: 11px;
+  background: var(--page);
+  color: var(--mute);
+  border: 1px dashed var(--line);
+}
+.dash .sheet .cell.used {
+  background: var(--soft);
+  text-decoration: line-through;
+}
+.dash .sheet .cell.new {
+  background: var(--accent);
+  color: #fff;
+  border-style: solid;
+}
+
 .foot {
   display: flex;
   flex-wrap: wrap;

@@ -1,6 +1,7 @@
 import { useHousehold } from './dashboard/household.ts';
 import { Footer, Layout } from './dashboard/Layout.tsx';
 import { AssetsPage, PlacesPage, SuppliesPage } from './dashboard/Manage.tsx';
+import { LabelsPage } from './dashboard/LabelsPage.tsx';
 import { Overview } from './dashboard/Overview.tsx';
 import { DownloadPage } from './download/DownloadPage.tsx';
 
@@ -26,8 +27,10 @@ function Dashboard({ path }: { path: string }) {
       <AssetsPage household={household} />
     ) : path === '/places' ? (
       <PlacesPage household={household} />
+    ) : path === '/labels' ? (
+      <LabelsPage household={household} />
     ) : (
       <Overview household={household} />
     );
-  return <Layout path={['/supplies', '/assets', '/places'].includes(path) ? path : '/'}>{page}</Layout>;
+  return <Layout path={['/supplies', '/assets', '/places', '/labels'].includes(path) ? path : '/'}>{page}</Layout>;
 }

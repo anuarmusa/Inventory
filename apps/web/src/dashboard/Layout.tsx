@@ -8,6 +8,7 @@ const PAGES: [string, string][] = [
   ['/supplies', 'Supplies'],
   ['/assets', 'Assets'],
   ['/places', 'Locations & Categories'],
+  ['/labels', 'Labels'],
   ['/app', 'Get the app'],
 ];
 
