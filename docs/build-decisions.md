@@ -41,3 +41,14 @@ Decisions made while building v1 ([`docs/spec/v1.md`](spec/v1.md)) that the spec
 - **Possible duplicate**: another live Supply with the same name, ignoring case and spaces. It shows as a hint on the Supply page with a link to Merge. It is not a Mismatch.
 - **Resolved Mismatches stay in history**: the Needs checking screen lists the last 20 under "Checked", with how each was resolved.
 - **The Count it screen** (`/count/[supplyId]`) is a plain Stocktake of one Supply, so the Location page's "Count what's here" (#30) can reuse it.
+
+## Assets and Locations in the app, and editing (#30)
+
+- **Ways in from Home**: a row of links (Supplies, Assets, Recent activity, Settings) under the Scan button. The Supplies and Assets lists have search and a "+ New" button. Asset value is not shown on the phone (spec §6.1).
+- **Count what's here** lists the Supplies kept at that Location. Each opens the one-Supply Stocktake, and the screen says a count sets the Supply's whole amount wherever it's kept, because a Stocktake is per Supply (spec §4.3).
+- **Forms send only what changed** (`supply.edited` / `asset.edited` with changed fields), since detail edits are last-writer-wins per field. Saving with nothing changed records nothing.
+- **Delete vs Dispose**: Delete (for mistakes) sits at the bottom of the edit form and explains that it hides the thing and can be undone. Dispose is on the Asset page with reasons Sold / Thrown away / Broken / Given away, or a typed reason, dated today.
+- **Log maintenance** is dated today, with an optional cost in RM. Money is typed as "2899", "2,899.50" or "RM 85" and stored in sen.
+- **Dates in forms** are typed day/month/year, with no date-picker library (none is installed, and adding one needs a native rebuild).
+- **Settings** holds Locations and Categories (add, rename, delete only when empty, with a message saying what's in the way) and links to Unsent changes. The household Near-expiry default stays at 7 days: no Action changes it in v1.
+- **Photos** show as a count on the Asset page until "Photos: upload, cache and resize" (#31).
