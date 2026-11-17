@@ -1,0 +1,7 @@
+I want to build an inventory system to keep track complete household inventory typically divides into consumable supplies (items you regularly use up and restock) and durable assets (long-term belongings you track for maintenance, moving, or insurance). Organizing your list into clear categories helps prevent overbuying and simplifies restocking. I want the application to provide the input when I purchase it preferable via scan through QR to add to inventory, remove from inventory when consume, alert when the items are lower or near expiry, and dashboard or report.  Build the android and apple apple to keep track these item.
+
+The backend system will be resided in the intranet local server (ubuntu server) located within my house.  The app will only connected or online when it connected with my house. It should have offline mode, when I go and purchase and update to the server once connected.
+
+create page to download the apk for andriod phone and apple to download and install. Keep track of the device that download the app.
+
+For the testing let build and run the application in this pc running on local development PC on docker desktop.  The final version should run on the ubuntu sever on the same local network as the development PC.
