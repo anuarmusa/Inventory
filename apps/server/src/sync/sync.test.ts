@@ -143,8 +143,16 @@ describe.skipIf(!canRun)('sync', () => {
     it('tells every Device the latest and minimum app versions', async () => {
       const phone = await newDevice();
       const body = await pushOk(phone, []);
-      expect((body as unknown as { app: unknown }).app).toEqual({ latest: '1.4.0', minimum: '0.1.0' });
-      expect((await pull(phone)).json().app).toEqual({ latest: '1.4.0', minimum: '0.1.0' });
+      const app = { latest: '1.4.0', minimum: '0.1.0', notes: 'Undo after saving.' };
+      expect((body as unknown as { app: unknown }).app).toEqual(app);
+      expect((await pull(phone)).json().app).toEqual(app);
+    });
+
+    it('records the app version a Device reports when it pulls', async () => {
+      const phone = await newDevice();
+      await app.inject({ method: 'GET', url: '/sync/pull?since=0', headers: { authorization: `Bearer ${phone.key}`, 'x-app-version': '1.3.2' } });
+      const [row] = await query<{ app_version: string }>('SELECT app_version FROM devices WHERE id = $1', [phone.id]);
+      expect(row!.app_version).toBe('1.3.2');
     });
 
     it('refuses a push from an app older than the minimum, changing nothing', async () => {

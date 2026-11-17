@@ -56,6 +56,13 @@ describe('syncing', () => {
     expect(engine.state()).toMatchObject({ home: true, problem: null, syncing: false });
   });
 
+  it('remembers the app versions the server reports, for the update banner', async () => {
+    const { engine, store } = readyPhone();
+    await engine.sync();
+    expect(engine.state().app).toEqual({ latest: null, minimum: '0.1.0' });
+    expect(JSON.parse(store.data[KEYS.appVersions]!)).toEqual({ latest: null, minimum: '0.1.0' });
+  });
+
   it('records Actions with this Device, its clock and a new id', async () => {
     const { engine, server } = readyPhone();
     server.pushError = new ApiError('unreachable', 'offline');

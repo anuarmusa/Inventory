@@ -1,4 +1,4 @@
-import type { AppVersions, PushRequest, PushResponse, RedeemRequest, RedeemResponse } from '@inventory/shared';
+import { APP_VERSION_HEADER, type AppVersions, type PushRequest, type PushResponse, type RedeemRequest, type RedeemResponse } from '@inventory/shared';
 import type { PulledChanges } from '../sync/inventory';
 
 /**
@@ -53,7 +53,9 @@ const KNOWN: ApiErrorReason[] = [
 /** "At home" means the server answers within this time. */
 const TIMEOUT_MS = 5_000;
 
-export function createApi(fetchImpl: typeof fetch = fetch, timeoutMs = TIMEOUT_MS): Api {
+/** `appVersion` is sent with every sync, so the Device list can flag out-of-date phones. */
+export function createApi(fetchImpl: typeof fetch = fetch, timeoutMs = TIMEOUT_MS, appVersion?: string): Api {
+  const versionHeader: Record<string, string> = appVersion ? { [APP_VERSION_HEADER]: appVersion } : {};
   async function call<T>(url: string, init: RequestInit): Promise<T> {
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), timeoutMs);
@@ -81,11 +83,11 @@ export function createApi(fetchImpl: typeof fetch = fetch, timeoutMs = TIMEOUT_M
         body: JSON.stringify(body),
       }),
     pull: (server, key, since) =>
-      call<PullResult>(`${server}/sync/pull?since=${since}`, { headers: { authorization: `Bearer ${key}` } }),
+      call<PullResult>(`${server}/sync/pull?since=${since}`, { headers: { authorization: `Bearer ${key}`, ...versionHeader } }),
     push: (server, key, body) =>
       call<PushResponse>(`${server}/sync/push`, {
         method: 'POST',
-        headers: { authorization: `Bearer ${key}`, 'content-type': 'application/json' },
+        headers: { authorization: `Bearer ${key}`, 'content-type': 'application/json', ...versionHeader },
         body: JSON.stringify(body),
       }),
   };

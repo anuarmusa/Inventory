@@ -17,6 +17,9 @@ export const LATEST_ACTION_SHAPE_VERSION = ACTION_SHAPE_VERSION;
 
 const version = z.string().regex(/^\d+\.\d+\.\d+$/, 'A version looks like 1.4.0');
 
+/** The header a Device sends its app version in on every request, so the Device list knows it. */
+export const APP_VERSION_HEADER = 'x-app-version';
+
 /** Compares `major.minor.patch` versions: negative when a < b, 0 when equal, positive when a > b. */
 export function compareVersions(a: string, b: string): number {
   const pa = a.split('.').map(Number);
@@ -33,6 +36,8 @@ export const AppVersions = z.object({
   /** The newest APK the server hosts, or null when none is hosted yet. */
   latest: version.nullable(),
   minimum: version,
+  /** The one-line what's new of the latest version, for the "Update available" banner. */
+  notes: z.string().nullable().optional(),
 });
 export type AppVersions = z.infer<typeof AppVersions>;
 

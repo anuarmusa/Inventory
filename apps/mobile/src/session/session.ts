@@ -27,6 +27,12 @@ export const KEYS = {
   shoppingTicks: 'shopping_ticks',
   /** Photos taken here and not uploaded yet, as a JSON array of ids. */
   pendingPhotos: 'pending_photos',
+  /** The app versions the server last reported, as JSON, so the update banner shows offline too. */
+  appVersions: 'app_versions',
+  /** The update version whose banner was dismissed. */
+  dismissedUpdate: 'dismissed_update',
+  /** Set once the "Install unknown apps" guidance has been shown. */
+  installGuided: 'install_guided',
 } as const;
 
 export interface SessionStore {

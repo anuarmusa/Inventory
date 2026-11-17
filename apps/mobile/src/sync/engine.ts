@@ -1,4 +1,4 @@
-import { Action, type ActionBody } from '@inventory/shared';
+import { Action, type ActionBody, type AppVersions } from '@inventory/shared';
 import { type Api, ApiError } from '../api/client';
 import { KEYS, markRemoved, type SessionStore } from '../session/session';
 import type { LocalStore } from './local';
@@ -27,6 +27,8 @@ export interface SyncState {
   problem: SyncProblem | null;
   /** When a sync last finished, as an ISO time. */
   lastSyncedAt: string | null;
+  /** The latest hosted and minimum accepted app versions, from the last server answer. */
+  app: AppVersions | null;
 }
 
 export type SyncResult = 'synced' | 'away' | 'removed' | 'not_connected';
@@ -60,7 +62,7 @@ export interface SyncEngine {
 const PUSH_CHUNK = 200;
 
 export function createSyncEngine({ session, local, api, appVersion, newId, now = () => new Date() }: SyncDeps): SyncEngine {
-  let state: SyncState = { home: null, syncing: false, problem: null, lastSyncedAt: null };
+  let state: SyncState = { home: null, syncing: false, problem: null, lastSyncedAt: null, app: null };
   const listeners = new Set<() => void>();
   const changed = () => listeners.forEach((l) => l());
   const setState = (patch: Partial<SyncState>) => {
@@ -101,7 +103,8 @@ export function createSyncEngine({ session, local, api, appVersion, newId, now =
       }
       const pulled = await api.pull(server, key, await local.lastSeq());
       await local.commitSync(pulled.changes, accepted, pulled.seq);
-      setState({ home: true, problem, lastSyncedAt: now().toISOString() });
+      setState({ home: true, problem, lastSyncedAt: now().toISOString(), app: pulled.app ?? state.app });
+      if (pulled.app) await session.set(KEYS.appVersions, JSON.stringify(pulled.app));
       return 'synced';
     } catch (error) {
       if (!(error instanceof ApiError)) throw error;
