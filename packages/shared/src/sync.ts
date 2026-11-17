@@ -82,3 +82,18 @@ export const SyncError = z.object({
   app: AppVersions.optional(),
 });
 export type SyncError = z.infer<typeof SyncError>;
+
+/**
+ * The hosted app release, as `latest.json` beside the APK describes it (written by the deploy
+ * script, spec §9 and §11).
+ */
+export const AppRelease = z.object({
+  version,
+  /** The day it was released, `YYYY-MM-DD`. */
+  date: z.iso.date(),
+  /** One line of what's new. */
+  notes: z.string(),
+  /** The APK's file name in the same folder. */
+  file: z.string().regex(/^[\w.-]+\.apk$/),
+});
+export type AppRelease = z.infer<typeof AppRelease>;

@@ -1,8 +1,10 @@
 import { existsSync } from 'node:fs';
 import Fastify, { type FastifyInstance } from 'fastify';
 import fastifyStatic from '@fastify/static';
-import { type AppVersions, type HealthResponse, MIN_APP_VERSION } from '@inventory/shared';
+import type { AppVersions, HealthResponse } from '@inventory/shared';
 import type { Db } from './db/client.ts';
+import { registerApkRoutes } from './apk-routes.ts';
+import { appVersionsFrom } from './app-versions.ts';
 import { registerPairingRoutes } from './pairing/routes.ts';
 import { registerSyncRoutes } from './sync/routes.ts';
 
@@ -12,7 +14,9 @@ export interface AppOptions {
   logger?: boolean;
   /** The database; sync routes are only registered when it is given. */
   db?: Db;
-  /** Latest hosted and minimum accepted app versions. */
+  /** The folder holding the APK and its latest.json. */
+  apkDir?: string;
+  /** Latest hosted and minimum accepted app versions (default: read from `apkDir`). */
   appVersions?: () => AppVersions;
   /** Overrides the server address put in pairing offers. */
   publicAddress?: string;
@@ -24,13 +28,15 @@ export function buildApp({
   webRoot,
   logger = false,
   db,
-  appVersions = () => ({ latest: null, minimum: MIN_APP_VERSION }),
+  apkDir,
+  appVersions = appVersionsFrom(apkDir),
   publicAddress,
   now,
 }: AppOptions = {}): FastifyInstance {
   const app = Fastify({ logger });
 
   app.get('/health', async (): Promise<HealthResponse> => ({ status: 'ok' }));
+  registerApkRoutes(app, { apkDir });
 
   if (db) {
     registerSyncRoutes(app, { db, appVersions });
