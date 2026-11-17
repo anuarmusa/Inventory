@@ -38,7 +38,8 @@
           "cameraPermission": "Allow Inventory to use the camera to scan barcodes and QR codes.",
           "barcodeScannerEnabled": true
         }
-      ]
+      ],
+      "./plugins/with-short-native-build-dir"
     ],
     "experiments": {
       "typedRoutes": true
