@@ -1,0 +1,542 @@
+<!doctype html>
+<!--
+  PROTOTYPE, throwaway. Answers "Prototype the scan flows" (issue #10).
+  Plan: three structurally different variants of the three scan flows (add bought Supplies,
+  use a Supply, scan a Label), switchable via ?variant=A|B|C and the floating bottom bar.
+  No app exists yet, so this is a standalone page (sub-shape B) in a phone frame.
+  State lives in memory only; reload to start over. Open by double-clicking this file.
+  QR Label content ("INV:A:A1") is a placeholder: label format is still fog on the map.
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>PROTOTYPE · Scan flows</title>
+<style>
+:root{--bg:#eef0f3;--ink:#1d232b;--mute:#6b7480;--line:#dfe3e8;--card:#fff;--acc:#0b7a5c;--acc2:#e3f3ec;--warn:#9a4a00;--warnbg:#fff1dc;--bad:#b42318;--badbg:#fdecea;--cam:#1b1f24}
+*{box-sizing:border-box}
+body{margin:0;font:14px/1.4 system-ui,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--ink)}
+button{font:inherit;cursor:pointer}
+input,select{font:inherit;padding:8px;border:1px solid var(--line);border-radius:8px;width:100%;background:#fff}
+h2,h3,h4{margin:0 0 6px}
+.banner{background:#fff7d6;border-bottom:1px solid #eadb9c;padding:8px 16px;font-size:13px}
+.wrap{display:flex;gap:20px;padding:16px 16px 100px;align-items:flex-start;flex-wrap:wrap;justify-content:center}
+.phone{width:375px;max-width:100%;height:780px;background:#fff;border:10px solid #111;border-radius:36px;overflow:hidden;position:relative;display:flex;flex-direction:column;flex:none}
+.sbar{display:flex;justify-content:space-between;align-items:center;padding:6px 14px;font-size:12px;background:#f6f7f9;border-bottom:1px solid var(--line)}
+.screen{flex:1;overflow:auto;position:relative;display:flex;flex-direction:column}
+.side{flex:1;min-width:300px;max-width:560px;display:flex;flex-direction:column;gap:12px}
+.panel{background:#fff;border:1px solid var(--line);border-radius:10px;padding:12px}
+.panel h4{font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--mute)}
+.scanbtns{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.scanbtns button{text-align:left;border:1px solid var(--line);background:#fafbfc;border-radius:8px;padding:6px 8px}
+.scanbtns button small{display:block;color:var(--mute)}
+.scanbtns button:hover{border-color:var(--acc)}
+.log{max-height:240px;overflow:auto;font-size:12.5px}
+.log div{padding:4px 0;border-bottom:1px dashed var(--line)}
+.log code{font-size:11.5px;color:var(--acc)}
+table{border-collapse:collapse;width:100%;font-size:12.5px}
+td,th{padding:3px 4px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+.mute{color:var(--mute)} small{font-size:12px}
+.badge{display:inline-block;font-size:11px;padding:1px 6px;border-radius:99px;background:#eef0f3}
+.badge.warn{background:var(--warnbg);color:var(--warn)} .badge.bad{background:var(--badbg);color:var(--bad)} .badge.ok{background:var(--acc2);color:var(--acc)}
+.primary{background:var(--acc);color:#fff;border:0;border-radius:10px;padding:12px 14px;font-weight:600;width:100%}
+.primary:disabled{opacity:.4;cursor:not-allowed}
+.ghost{background:#fff;border:1px solid var(--line);border-radius:10px;padding:10px 14px;width:100%}
+.row{display:flex;gap:8px;align-items:center}
+.row>*{flex:1}
+.field{margin:10px 0}
+.field>label{display:block;font-size:12px;color:var(--mute);margin-bottom:4px}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+.chip{border:1px solid var(--line);background:#fff;border-radius:99px;padding:3px 10px;font-size:12.5px}
+.chip.on{background:var(--acc);border-color:var(--acc);color:#fff}
+.chip.warnchip{background:var(--warnbg);border-color:#f3c98b;color:var(--warn)}
+.stepper{display:inline-flex;align-items:center;gap:10px}
+.stepper button{width:36px;height:36px;border-radius:50%;border:1px solid var(--line);background:#fff;font-size:18px}
+.stepper b{font-size:20px;min-width:28px;text-align:center}
+.note{padding:8px 10px;border-radius:8px;background:#f3f4f6;font-size:13px;margin:8px 0}
+.note.ok{background:var(--acc2)} .note.warn{background:var(--warnbg)}
+.cam{background:var(--cam);color:#cfd5dc;position:relative;display:flex;align-items:center;justify-content:center;text-align:center;flex:none}
+.cam .frame{position:absolute;inset:22% 14%;border:2px solid rgba(255,255,255,.7);border-radius:12px}
+.cam .camhint{position:relative;padding:0 30px;font-size:13px}
+.msg{margin:8px 12px;padding:8px 10px;border-radius:8px;background:var(--acc2);font-size:13px}
+.msg.warn{background:var(--warnbg)}
+.pad{padding:14px}
+.scrim{position:absolute;inset:0;background:rgba(0,0,0,.35)}
+.sheet{position:absolute;left:0;right:0;bottom:0;max-height:88%;overflow:auto;background:#fff;border-radius:18px 18px 0 0;padding:16px;box-shadow:0 -6px 20px rgba(0,0,0,.2)}
+.kv{display:grid;grid-template-columns:110px 1fr;gap:4px 8px;font-size:13px;margin:8px 0}
+.kv span:nth-child(odd){color:var(--mute)}
+.cardbtns{display:flex;gap:6px;margin:10px 0}
+.cardbtns button{flex:1;border:1px solid var(--line);background:#fafbfc;border-radius:8px;padding:8px}
+/* Variant A */
+.va .seg{display:flex;background:var(--cam);padding:8px;gap:4px}
+.va .seg button{flex:1;border:0;border-radius:8px;padding:8px;background:#2c323a;color:#cfd5dc}
+.va .seg button.on{background:#fff;color:var(--ink);font-weight:600}
+.va .cam{height:230px}
+.va .tray{padding:10px 12px;flex:1}
+.va .line{border:1px solid var(--line);border-radius:10px;padding:8px 10px;margin-bottom:8px;cursor:pointer}
+.va .line.attn{border-color:#f3c98b;background:var(--warnbg)}
+.va .lt{display:flex;justify-content:space-between}
+.va .qty{font-weight:700;color:var(--acc)}
+.va .pending{border:2px solid var(--acc);border-radius:12px;padding:12px;margin-bottom:10px}
+/* Variant B */
+.vb{display:flex;flex-direction:column;flex:1}
+.vb .tiles{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:12px 0}
+.vb .tile{border:1px solid var(--line);border-radius:12px;padding:10px;text-align:center}
+.vb .tile b{display:block;font-size:22px}
+.vb .bigscan{width:100%;height:160px;border-radius:24px;border:0;background:var(--acc);color:#fff;font-size:26px;font-weight:700;margin:18px 0 8px}
+.vb .hero{background:#f6f7f9;padding:18px 14px;border-bottom:1px solid var(--line)}
+.vb .big2{display:flex;flex-direction:column;gap:12px;padding:16px}
+.vb .big2 button{height:96px;border-radius:16px;border:1px solid var(--line);background:#fff;font-size:19px;font-weight:600;text-align:left;padding:0 18px}
+.vb .big2 button small{display:block;font-weight:400;color:var(--mute)}
+.vb .q{padding:20px 16px;flex:1}
+.vb .q h2{font-size:22px;margin-bottom:14px}
+.vb .prog{display:flex;gap:4px;padding:10px 16px 0}
+.vb .prog i{flex:1;height:4px;border-radius:2px;background:var(--line)} .vb .prog i.on{background:var(--acc)}
+.vb .foot{padding:12px 16px;display:flex;gap:8px;border-top:1px solid var(--line)}
+.vb .opt{display:block;width:100%;text-align:left;border:1px solid var(--line);background:#fff;border-radius:10px;padding:12px;margin-bottom:8px}
+.vb .opt.on{border-color:var(--acc);background:var(--acc2);font-weight:600}
+.vb .cam{flex:1}
+/* Variant C */
+.vc .head{padding:14px;background:#f6f7f9;border-bottom:1px solid var(--line)}
+.vc .jobs{display:flex;flex-direction:column;gap:10px;padding:14px}
+.vc .job{display:flex;gap:12px;align-items:center;border:1px solid var(--line);background:#fff;border-radius:14px;padding:14px;text-align:left}
+.vc .job span{font-size:28px}
+.vc .job small{display:block;color:var(--mute)}
+.vc .att{padding:0 14px}
+.vc .att div{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--line);font-size:13px}
+.vc .topbar{display:flex;justify-content:space-between;align-items:center;padding:10px 12px;background:var(--cam);color:#fff}
+.vc .topbar button{background:#fff;border:0;border-radius:8px;padding:6px 12px}
+.vc .cam{height:300px}
+.vc .session{padding:8px 12px;font-size:13px}
+/* Switcher */
+.switcher{position:fixed;left:50%;bottom:18px;transform:translateX(-50%);display:flex;align-items:center;gap:6px;background:#111;color:#fff;border-radius:99px;padding:6px 8px;box-shadow:0 6px 24px rgba(0,0,0,.35);z-index:99;font-size:13px;max-width:calc(100% - 32px)}
+.switcher button{background:#2a2a2a;color:#fff;border:0;border-radius:50%;width:32px;height:32px;font-size:16px}
+.switcher span{padding:0 10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+</style>
+</head>
+<body>
+<div class="banner"><b>PROTOTYPE, throwaway.</b> Three ways to do the scan flows. Flip with ← → or the bar at the bottom. Use the <b>Simulated scanner</b> as the camera. Nothing is saved; reload to start over.</div>
+<div class="wrap">
+  <div class="phone" id="phone"></div>
+  <div class="side" id="side"></div>
+</div>
+<div class="switcher"><button onclick="cycle(-1)" title="Previous variant">←</button><span id="vlabel"></span><button onclick="cycle(1)" title="Next variant">→</button></div>
+
+<script>
+// ---------- helpers ----------
+const TODAY='2026-11-17';
+const addDays=(d,n)=>{const t=new Date(d+'T00:00:00Z');t.setUTCDate(t.getUTCDate()+n);return t.toISOString().slice(0,10)};
+const fmt=d=>d?new Date(d+'T00:00:00Z').toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric',timeZone:'UTC'}):'no expiry';
+const daysTo=d=>Math.round((new Date(d+'T00:00:00Z')-new Date(TODAY+'T00:00:00Z'))/864e5);
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+let uid=100; const nid=p=>p+(++uid);
+
+// ---------- sample household (in memory) ----------
+const D={
+ home:false, internet:true,
+ locations:[{id:'L1',name:'Pantry'},{id:'L2',name:'Fridge'},{id:'L3',name:'Freezer'},{id:'L4',name:'Store room'},{id:'L5',name:'Living room'},{id:'L6',name:'Kitchen sink'},{id:'L7',name:'Garage'}],
+ categories:['Food','Drinks','Cleaning','Toiletries','Electronics','Tools'],
+ supplies:[
+  {id:'S1',name:'Jasmine rice',unit:'packs',cat:'Food',loc:'L1',min:1,restockTo:3,expires:true},
+  {id:'S2',name:'Milo',unit:'tins',cat:'Drinks',loc:'L1',min:1,restockTo:2,expires:true},
+  {id:'S3',name:'Toilet paper',unit:'rolls',cat:'Toiletries',loc:'L4',min:6,restockTo:20,expires:false},
+  {id:'S4',name:'Fresh milk',unit:'bottles',cat:'Drinks',loc:'L2',min:2,restockTo:4,expires:true},
+  {id:'S5',name:'Chicken',unit:'packs',cat:'Food',loc:'L3',min:2,restockTo:6,expires:true},
+  {id:'S6',name:'Dishwashing liquid',unit:'bottles',cat:'Cleaning',loc:'L6',min:1,restockTo:2,expires:false},
+ ],
+ barcodes:[
+  {code:'9556001234561',supply:'S1',brand:'Beras Wangi',product:'Jasmine rice',size:'5 kg',perScan:1,source:'household'},
+  {code:'9556002345678',supply:'S2',brand:'',product:'Milo tin',size:'1 kg',perScan:1,source:'household'},
+  {code:'9556003456789',supply:'S3',brand:'',product:'Toilet roll 10-pack',size:'10 rolls',perScan:10,source:'household'},
+  {code:'9556004567890',supply:'S4',brand:'',product:'Fresh milk',size:'1 L',perScan:1,source:'household'},
+ ],
+ batches:[
+  {id:'B1',supply:'S1',qty:1,expiry:'2027-05-01',loc:'L1'},
+  {id:'B2',supply:'S2',qty:2,expiry:'2027-03-10',loc:'L1'},
+  {id:'B3',supply:'S3',qty:8,expiry:null,loc:'L4'},
+  {id:'B4',supply:'S4',qty:1,expiry:'2026-11-20',loc:'L2'},
+  {id:'B5',supply:'S4',qty:1,expiry:'2026-11-28',loc:'L2'},
+  {id:'B6',supply:'S5',qty:3,expiry:'2027-01-15',loc:'L3'},
+  {id:'B7',supply:'S6',qty:1,expiry:null,loc:'L6'},
+ ],
+ assets:[
+  {id:'A1',name:'Samsung 55" TV',cat:'Electronics',loc:'L5',bought:'2024-08-10',price:2899,shop:'Electronics shop, Mid Valley',serial:'SN-55-0042',warranty:'2027-08-10',photos:2,maint:[],disposed:null},
+  {id:'A2',name:'Cordless drill',cat:'Tools',loc:'L7',bought:'2023-02-04',price:349,shop:'Hardware store',serial:'DR-18V-7781',warranty:'2025-02-04',photos:1,maint:[{date:'2025-06-01',note:'New battery',cost:89}],disposed:null},
+ ],
+ actions:[],
+};
+// Simulated Open Food Facts: only consulted when the phone has internet.
+const OFF={'9556005678901':{product:'Dishwashing liquid lime refill',brand:'Kilat',size:'900 ml'}};
+const SAMPLES=[
+ ['Jasmine rice 5kg','9556001234561','known'],
+ ['Milo tin 1kg','9556002345678','known'],
+ ['Toilet roll 10-pack','9556003456789','known · one scan = 10 rolls'],
+ ['Fresh milk 1L','9556004567890','known · near expiry'],
+ ['Dishwashing refill','9556005678901','new · on Open Food Facts'],
+ ['Kuih bangkit 300g','9556006789012','new · not on OFF'],
+ ['Weighed chicken','2100345012504','shop-weighed code'],
+ ['Label on the TV','INV:A:A1','Asset Label'],
+ ['Label on the Freezer','INV:L:L3','Location Label'],
+ ["Neighbour's Wi-Fi QR",'WIFI:S:Jiran;T:WPA;P:x;;','not ours'],
+];
+
+const sup=id=>D.supplies.find(s=>s.id===id);
+const loc=id=>D.locations.find(l=>l.id===id)||{name:'?'};
+const batchesOf=sid=>D.batches.filter(b=>b.supply===sid).sort((a,b)=>(a.expiry||'9999')<(b.expiry||'9999')?-1:1);
+const onHand=sid=>batchesOf(sid).reduce((n,b)=>n+b.qty,0);
+const isLow=s=>s.min!=null&&onHand(s.id)<=s.min;
+const nearBatches=()=>D.batches.filter(b=>b.expiry&&daysTo(b.expiry)<=7);
+
+function identify(code){
+ const b=D.barcodes.find(x=>x.code===code); if(b) return {kind:'barcode',code,b,s:sup(b.supply)};
+ if(code.startsWith('INV:A:')){const a=D.assets.find(x=>x.id===code.slice(6)); if(a) return {kind:'asset',code,a};}
+ if(code.startsWith('INV:L:')){const l=D.locations.find(x=>x.id===code.slice(6)); if(l) return {kind:'location',code,l};}
+ if(/^\d{12,13}$/.test(code)){
+  const c13=code.length===13?code:'0'+code;
+  if(/^(02|2\d)/.test(c13)) return {kind:'weighed',code};
+  return {kind:'unknown',code,off:D.internet?(OFF[code]||null):undefined};
+ }
+ return {kind:'junk',code};
+}
+
+// ---------- Actions (what sync would send) ----------
+function record(type,payload,summary){D.actions.unshift({type,payload,summary,sent:D.home,at:new Date().toLocaleTimeString()})}
+function addBatch(sid,qty,expiry,lid){
+ qty=+qty; if(!qty) return; const s=sup(sid);
+ D.batches.push({id:nid('B'),supply:sid,qty,expiry:expiry||null,loc:lid});
+ record('batch.added',{supply:sid,qty,expiry:expiry||null,location:lid},`Added ${qty} ${s.unit} of ${s.name}${expiry?' · exp '+fmt(expiry):''} → ${loc(lid).name}`);
+}
+function useSupply(sid,qty){
+ const s=sup(sid); let left=+qty;
+ for(const b of batchesOf(sid)){ if(!left)break; const t=Math.min(b.qty,left); b.qty-=t; left-=t; }
+ D.batches=D.batches.filter(b=>b.qty>0);
+ record('supply.used',{supply:sid,qty:+qty},`Used ${qty} ${s.unit} of ${s.name}`+(left?` (short by ${left}: the server would flag a Mismatch)`:''));
+ return left;
+}
+function createSupply(name,unit,cat){
+ const id=nid('S'); D.supplies.push({id,name,unit,cat,loc:'L1',min:null,restockTo:null,expires:true});
+ record('supply.created',{id,name,unit,category:cat},`New Supply: ${name} (${unit})`); return id;
+}
+function attachBarcode(code,sid,d){
+ D.barcodes.push({code,supply:sid,...d});
+ record('barcode.attached',{code,supply:sid,...d},`Barcode ${code} → ${sup(sid).name}${d.source==='Open Food Facts'?' (details from Open Food Facts)':''}`);
+}
+
+// ---------- shared form bits ----------
+let F={}; // the form being edited right now
+const card={mode:null};
+function viewfinder(hint){return `<div class="cam"><div class="frame"></div><div class="camhint">${hint||'Point at a barcode or Label'}<br><small style="opacity:.7">(use the Simulated scanner →)</small></div></div>`}
+function stepper(k,unit){return `<div class="stepper"><button onclick="go('step','${k}',-1)">−</button><b>${esc(F[k])}</b><span>${esc(unit||'')}</span><button onclick="go('step','${k}',1)">+</button></div>`}
+function expiryField(label){
+ const chips=[['+1 week',7],['+1 month',30],['+3 months',91],['+6 months',182],['+1 year',365]];
+ return `<div class="field"><label>${label||'Expiry'}</label><input type="date" value="${F.expiry||''}" onchange="go('f','expiry',this.value)">
+ <div class="chips"><button class="chip ${!F.expiry?'on':''}" onclick="go('f','expiry','')">No date</button>${chips.map(([t,n])=>{const d=addDays(TODAY,n);return `<button class="chip ${F.expiry===d?'on':''}" onclick="go('f','expiry','${d}')">${t}</button>`}).join('')}</div></div>`;
+}
+function locationSelect(){return `<div class="field"><label>Location</label><select onchange="go('f','loc',this.value)">${D.locations.map(l=>`<option value="${l.id}" ${F.loc===l.id?'selected':''}>${esc(l.name)}${sup(F.sid||F.target)?.loc===l.id?' (usual)':''}</option>`).join('')}</select></div>`}
+function supplySelect(label,allowNew){return `<div class="field"><label>${label}</label><select onchange="go('f','target',this.value)"><option value="">Choose…</option>${D.supplies.map(s=>`<option value="${s.id}" ${F.target===s.id?'selected':''}>${esc(s.name)}</option>`).join('')}${allowNew?`<option value="__new" ${F.target==='__new'?'selected':''}>+ New Supply…</option>`:''}</select></div>`}
+function lookupNote(){
+ const o=F.off;
+ if(o===undefined) return `<div class="note warn">No internet, so this couldn't be looked up. Type the name in.</div>`;
+ if(o) return `<div class="note ok">Found on Open Food Facts: <b>${esc(o.brand)} ${esc(o.product)}</b> · ${esc(o.size)}<br><small class="mute">Product data © Open Food Facts contributors (ODbL)</small></div>`;
+ return `<div class="note">Not on Open Food Facts. Type the name in.</div>`;
+}
+function newSupplyFields(){
+ if(F.target!=='__new') return '';
+ return `<div class="field"><label>New Supply name (the general thing, any brand)</label><input value="${esc(F.newName)}" placeholder="e.g. Kuih bangkit" onchange="go('f','newName',this.value)"></div>
+ <div class="row"><div class="field"><label>Counted in</label><input value="${esc(F.newUnit)}" onchange="go('f','newUnit',this.value)"></div>
+ <div class="field"><label>Category</label><select onchange="go('f','newCat',this.value)">${D.categories.map(c=>`<option ${F.newCat===c?'selected':''}>${c}</option>`).join('')}</select></div></div>`;
+}
+function newProductFields(){
+ return lookupNote()+`<div class="field"><label>Name on the pack</label><input value="${esc(F.product)}" onchange="go('f','product',this.value)"></div>`
+ +supplySelect('Which Supply is it?',true)+newSupplyFields()
+ +`<div class="field"><label>One scan of this barcode adds</label>${stepper('perScan','units')}</div>`;
+}
+function newForm(r){
+ const o=r.off; const guess=o?D.supplies.find(s=>o.product.toLowerCase().includes(s.name.toLowerCase().split(' ')[0])):null;
+ return {kind:r.kind,code:r.code,off:o,product:o?o.product:'',brand:o?.brand||'',size:o?.size||'',target:guess?.id||'',perScan:1,newName:'',newUnit:'pieces',newCat:'Food',qty:1,expiry:'',loc:guess?.loc||'L1'};
+}
+function finishNew(){
+ let sid=F.target;
+ if(!sid){alert('Pick which Supply this is.');return null}
+ if(F.kind==='weighed') return sid;
+ if(sid==='__new'){ if(!F.newName){alert('Give the new Supply a name.');return null} sid=createSupply(F.newName,F.newUnit||'pieces',F.newCat); }
+ attachBarcode(F.code,sid,{product:F.product,brand:F.brand,size:F.size,perScan:+F.perScan||1,source:F.off?'Open Food Facts':'household'});
+ return sid;
+}
+
+function supplyCard(s){
+ const bs=batchesOf(s.id);
+ return `<h3>${esc(s.name)}</h3><div class="mute">${onHand(s.id)} ${s.unit} on hand · usually in ${esc(loc(s.loc).name)} ${isLow(s)?'<span class="badge warn">Low stock</span>':''}</div>
+ <table style="margin-top:8px"><tr><th>Batch</th><th>Expiry</th><th>Where</th></tr>${bs.map(b=>`<tr><td>${b.qty} ${s.unit}</td><td>${fmt(b.expiry)} ${b.expiry&&daysTo(b.expiry)<=7?'<span class="badge warn">Near expiry</span>':''}</td><td>${esc(loc(b.loc).name)}</td></tr>`).join('')||'<tr><td colspan=3 class="mute">None at home</td></tr>'}</table>
+ <div class="mute" style="margin-top:6px;font-size:12px">${D.barcodes.filter(b=>b.supply===s.id).length} barcode(s) · Minimum ${s.min??'none'} · Restock to ${s.restockTo??'none'}</div>`;
+}
+function assetCard(a){
+ const m=card.mode;
+ let h=`<h3>${esc(a.name)}</h3>${a.disposed?`<div class="note warn">Disposed ${fmt(a.disposed.date)}: ${esc(a.disposed.reason)}</div>`:''}
+ <div class="kv"><span>Location</span><span>${esc(loc(a.loc).name)}</span><span>Category</span><span>${a.cat}</span><span>Bought</span><span>${fmt(a.bought)} · RM ${a.price.toLocaleString()}<br><small class="mute">${esc(a.shop)}</small></span><span>Serial</span><span>${a.serial}</span><span>Warranty</span><span>until ${fmt(a.warranty)} ${daysTo(a.warranty)<0?'<span class="badge">ended</span>':'<span class="badge ok">active</span>'}</span><span>Photos</span><span>📷 ${a.photos} + receipt</span></div>
+ <div class="mute" style="font-size:12px">Maintenance</div>${a.maint.map(x=>`<div style="font-size:13px">${fmt(x.date)}: ${esc(x.note)} · RM ${x.cost}</div>`).join('')||'<div class="mute" style="font-size:13px">None yet</div>'}`;
+ if(a.disposed) return h;
+ h+=`<div class="cardbtns"><button onclick="go('cardMode','move')">Move</button><button onclick="go('cardMode','maint')">Log maintenance</button><button onclick="go('cardMode','dispose')">Dispose</button></div>`;
+ if(m==='move') h+=`<div class="row"><select id="mvLoc">${D.locations.map(l=>`<option value="${l.id}" ${l.id===a.loc?'selected':''}>${l.name}</option>`).join('')}</select><button class="primary" onclick="go('assetMove','${a.id}')">Move</button></div>`;
+ if(m==='maint') h+=`<div class="field"><input id="mNote" placeholder="What was done"></div><div class="row"><input id="mCost" type="number" placeholder="Cost RM"><button class="primary" onclick="go('assetMaint','${a.id}')">Save</button></div>`;
+ if(m==='dispose') h+=`<div class="row"><select id="dReason"><option>Sold</option><option>Thrown away</option><option>Broken</option><option>Given away</option></select><button class="primary" onclick="go('assetDispose','${a.id}')">Dispose</button></div>`;
+ return h;
+}
+function locationCard(l){
+ const bs=D.batches.filter(b=>b.loc===l.id), as=D.assets.filter(a=>a.loc===l.id&&!a.disposed);
+ return `<h3>📍 ${esc(l.name)}</h3><div class="mute" style="font-size:12px">Supplies here</div>
+ <table>${bs.map(b=>{const s=sup(b.supply);return `<tr><td>${esc(s.name)}</td><td>${b.qty} ${s.unit}</td><td>${fmt(b.expiry)} ${b.expiry&&daysTo(b.expiry)<=7?'<span class="badge warn">Near expiry</span>':''}</td></tr>`}).join('')||'<tr><td class="mute">Nothing</td></tr>'}</table>
+ <div class="mute" style="font-size:12px;margin-top:8px">Assets here</div>${as.map(a=>`<div>${esc(a.name)}</div>`).join('')||'<div class="mute">None</div>'}
+ <button class="ghost" style="margin-top:10px" onclick="alert('Stocktake is decided (count a whole Supply) but not prototyped here.')">Count what’s here (Stocktake)</button>`;
+}
+const common={
+ f:(k,v)=>{F[k]=v},
+ step:(k,d)=>{F[k]=Math.max(k==='qty'||k==='perScan'?1:0,(+F[k]||0)+d)},
+ cardMode:m=>{card.mode=card.mode===m?null:m},
+ assetMove:id=>{const a=D.assets.find(x=>x.id===id),v=document.getElementById('mvLoc').value;a.loc=v;record('asset.moved',{asset:id,location:v},`Moved ${a.name} → ${loc(v).name}`);card.mode=null},
+ assetMaint:id=>{const a=D.assets.find(x=>x.id===id),n=document.getElementById('mNote').value||'Service',c=+document.getElementById('mCost').value||0;a.maint.push({date:TODAY,note:n,cost:c});record('maintenance.added',{asset:id,note:n,cost:c},`Maintenance on ${a.name}: ${n} (RM ${c})`);card.mode=null},
+ assetDispose:id=>{const a=D.assets.find(x=>x.id===id),r=document.getElementById('dReason').value;a.disposed={date:TODAY,reason:r};record('asset.disposed',{asset:id,reason:r},`Disposed ${a.name}: ${r}`);card.mode=null},
+};
+
+// ================= Variant A: scan-first, mode toggle =================
+const VA={key:'A',name:'Scan-first: camera always on, Add / Use / Look up toggle',
+ reset(){this.st={mode:'add',basket:[],sheet:null,pending:null,msg:'',warn:false};F={}},
+ scanning(){return !this.st.sheet},
+ commit(){const st=this.st,p=st.pending; if(p&&p.qty>0){const s=sup(p.sid),short=useSupply(p.sid,p.qty);st.msg=`✓ Used ${p.qty} ${s.unit} of ${s.name}. ${onHand(p.sid)} left${isLow(s)?' · Low stock, now on the Shopping list':''}${short?' · more than was recorded!':''}`;st.warn=isLow(s)} st.pending=null},
+ onScan(code){
+  const st=this.st,r=identify(code); st.msg='';st.warn=false;
+  if(r.kind==='asset'||r.kind==='location'){this.commit();card.mode=null;st.sheet={type:r.kind,id:(r.a||r.l).id};return}
+  if(r.kind==='junk'){st.msg='⚠ Not a product barcode or one of our Labels.';st.warn=true;return}
+  if(st.mode==='add'){
+   if(r.kind==='barcode'){const ex=st.basket.find(l=>l.code===code);
+    if(ex){ex.qty+=r.b.perScan;st.msg=`+${r.b.perScan} ${r.s.name} (now ${ex.qty} in basket)`}
+    else{st.basket.push({id:nid('ln'),code,sid:r.s.id,qty:r.b.perScan,expiry:'',loc:r.s.loc});st.msg=`+${r.b.perScan} ${r.s.unit} of ${r.s.name}`}}
+   else{st.basket.push({id:nid('ln'),code,sid:null,status:r.kind,form:newForm(r)});st.msg=`${r.kind==='weighed'?'Shop-weighed item':'New product'} added. Set it up before saving.`;st.warn=true}
+  }else if(st.mode==='use'){
+   this.commit();
+   if(r.kind==='barcode'){st.pending={sid:r.s.id,qty:1};F=st.pending;st.msg=''}
+   else if(r.kind==='weighed'){F={kind:'weighed',target:'',qty:1};st.sheet={type:'pickUse'}}
+   else{st.msg='This product isn’t in the inventory, so there’s nothing to use. Switch to Add?';st.warn=true}
+  }else{
+   if(r.kind==='barcode') st.sheet={type:'supply',id:r.s.id};
+   else {st.msg=r.kind==='weighed'?'Shop-weighed codes don’t identify a Supply.':'Not in the inventory yet.';st.warn=true}
+  }
+ },
+ render(){
+  const st=this.st;
+  let h=`<div class="seg">${[['add','Add bought'],['use','Use up'],['look','Look up']].map(([m,t])=>`<button class="${st.mode===m?'on':''}" onclick="go('mode','${m}')">${t}</button>`).join('')}</div>`;
+  h+=viewfinder(st.mode==='add'?'Scan everything you bought, one after another':st.mode==='use'?'Scan what you just used':'Scan a barcode or Label to see it');
+  if(st.msg) h+=`<div class="msg ${st.warn?'warn':''}">${st.msg}</div>`;
+  h+=`<div class="tray">${st.mode==='add'?this.basketHTML():st.mode==='use'?this.useHTML():'<p class="mute">Look up shows a Supply’s Batches, or what a Label belongs to. Labels open from any mode.</p>'}</div>`;
+  if(st.sheet) h+=`<div class="scrim" onclick="go('closeSheet')"></div><div class="sheet">${this.sheetHTML()}</div>`;
+  return `<div class="va" style="display:flex;flex-direction:column;flex:1">${h}</div>`;
+ },
+ basketHTML(){
+  const b=this.st.basket;
+  if(!b.length) return `<p class="mute">Basket is empty. Each scan adds a line, and scanning the same thing again adds to that line. Expiry and Location can be set per line before saving.</p>`;
+  return `<div class="mute" style="font-size:12px;margin-bottom:6px">BASKET · tap a line to change it</div>`+b.map(l=>{
+   if(!l.sid) return `<div class="line attn" onclick="go('openLine','${l.id}')"><b>${l.status==='weighed'?'Shop-weighed item':'New product'}</b> <span class="mute">${l.code}</span><br><span class="badge warn">Tap to set up</span></div>`;
+   const s=sup(l.sid),needExp=s.expires&&!l.expiry;
+   return `<div class="line" onclick="go('openLine','${l.id}')"><div class="lt"><b>${esc(s.name)}</b><span class="qty">+${l.qty} ${s.unit}</span></div><div class="chips"><span class="chip ${needExp?'warnchip':''}">${l.expiry?'exp '+fmt(l.expiry):(s.expires?'Expiry?':'Doesn’t expire')}</span><span class="chip">${esc(loc(l.loc).name)}</span></div></div>`;
+  }).join('')+`<button class="primary" style="margin-top:6px" onclick="go('saveBasket')" ${b.some(l=>!l.sid)?'disabled':''}>Put away ${b.length} line${b.length>1?'s':''}</button>${b.some(l=>!l.sid)?'<div class="mute" style="font-size:12px;margin-top:4px">Set up new products first.</div>':''}`;
+ },
+ useHTML(){
+  const p=this.st.pending; let h='';
+  if(p){const s=sup(p.sid),b=batchesOf(p.sid)[0],after=onHand(p.sid)-p.qty;
+   h+=`<div class="pending"><div class="lt" style="display:flex;justify-content:space-between"><b>${esc(s.name)}</b>${stepper('qty',s.unit)}</div>
+   <div class="mute" style="font-size:12.5px;margin:6px 0">Takes from the oldest Batch first${b?`: ${fmt(b.expiry)}, ${b.qty} there`:''}. ${after>=0?after+' left after this.':'<b style="color:var(--bad)">More than recorded!</b>'} ${after>=0&&s.min!=null&&after<=s.min?'<span class="badge warn">Will be Low stock</span>':''}</div>
+   <div class="row"><button class="ghost" onclick="go('useCancel')">Cancel</button><button class="primary" onclick="go('useDone')">Done</button></div>
+   <div class="mute" style="font-size:12px;margin-top:6px">Scanning the next thing also saves this one.</div></div>`;}
+  const used=D.actions.filter(a=>a.type==='supply.used').slice(0,5);
+  h+=used.length?`<div class="mute" style="font-size:12px">USED RECENTLY</div>`+used.map(a=>`<div style="font-size:13px;padding:3px 0">${esc(a.summary)}</div>`).join(''):(p?'':'<p class="mute">Each scan counts 1 used. Change the number before scanning the next item.</p>');
+  return h;
+ },
+ sheetHTML(){
+  const sh=this.st.sheet;
+  if(sh.type==='asset') return assetCard(D.assets.find(a=>a.id===sh.id));
+  if(sh.type==='location') return locationCard(loc(sh.id));
+  if(sh.type==='supply') return supplyCard(sup(sh.id));
+  if(sh.type==='pickUse') return `<h3>Shop-weighed item</h3><div class="mute">This code only says the weight and price. Which Supply did you use?</div>${supplySelect('Supply')}<button class="primary" onclick="go('pickUseDone')">Continue</button>`;
+  if(sh.type==='resolve') return `<h3>${F.kind==='weighed'?'Shop-weighed item':'New product'}</h3><div class="mute">${F.code}</div>${F.kind==='weighed'?'<div class="note">Shop-weighed codes don’t identify a product. Pick the Supply.</div>'+supplySelect('Supply'):newProductFields()}<div class="row"><button class="ghost" onclick="go('lineRemove')">Remove</button><button class="primary" onclick="go('resolveDone')">Continue</button></div>`;
+  const s=sup(F.sid);
+  return `<h3>${esc(s.name)}</h3><div class="field"><label>How many</label>${stepper('qty',s.unit)}</div>${s.expires?expiryField():'<div class="mute">Doesn’t expire</div>'}${locationSelect()}<div class="row"><button class="ghost" onclick="go('lineRemove')">Remove line</button><button class="primary" onclick="go('closeSheet')">Done</button></div>`;
+ },
+ on:{
+  mode:m=>{VA.commit();VA.st.mode=m;VA.st.msg=''},
+  closeSheet:()=>{VA.st.sheet=null},
+  openLine:id=>{const l=VA.st.basket.find(x=>x.id===id);VA.st.sheet={type:l.sid?'line':'resolve',id};F=l.sid?l:l.form},
+  lineRemove:()=>{VA.st.basket=VA.st.basket.filter(l=>l.id!==VA.st.sheet.id);VA.st.sheet=null},
+  resolveDone:()=>{const l=VA.st.basket.find(x=>x.id===VA.st.sheet.id),sid=finishNew();if(!sid)return;const s=sup(sid);
+   Object.assign(l,{sid,qty:F.kind==='weighed'?1:(+F.perScan||1),expiry:'',loc:s.loc});F=l;VA.st.sheet={type:'line',id:l.id}},
+  saveBasket:()=>{const n=VA.st.basket.length;VA.st.basket.forEach(l=>addBatch(l.sid,l.qty,l.expiry,l.loc));VA.st.basket=[];VA.st.msg=`✓ Put away ${n} line${n>1?'s':''}.`},
+  useDone:()=>VA.commit(),
+  useCancel:()=>{VA.st.pending=null},
+  pickUseDone:()=>{if(!F.target)return alert('Pick a Supply.');VA.st.pending={sid:F.target,qty:1};F=VA.st.pending;VA.st.sheet=null},
+ }
+};
+
+// ================= Variant B: scan, then one question per screen =================
+const VB={key:'B',name:'One button: scan, then answer one question per screen',
+ reset(){this.st={screen:'home',msg:'',r:null};F={}},
+ scanning(){return this.st.screen==='scan'},
+ onScan(code){
+  const st=this.st,r=identify(code);st.msg='';st.r=r;card.mode=null;
+  if(r.kind==='barcode'){F={sid:r.s.id,perScan:r.b.perScan};st.screen='choose'}
+  else if(r.kind==='asset'){st.screen='asset'}
+  else if(r.kind==='location'){st.screen='location'}
+  else if(r.kind==='unknown'){F=newForm(r);st.screen='new1'}
+  else if(r.kind==='weighed'){F={kind:'weighed',target:''};st.screen='weighed'}
+  else st.msg='⚠ Not a product barcode or one of our Labels. Try again.';
+ },
+ steps(){return ['qty',sup(F.sid).expires?'expiry':null,'where'].filter(Boolean)},
+ prog(cur){const s=this.steps();return `<div class="prog">${s.map((x,i)=>`<i class="${i<=s.indexOf(cur)?'on':''}"></i>`).join('')}</div>`},
+ foot(back,next,label){return `<div class="foot"><button class="ghost" style="flex:1" onclick="go('to','${back}')">Back</button><button class="primary" style="flex:2" onclick="go('${next}')">${label||'Next'}</button></div>`},
+ render(){
+  const st=this.st,s=F.sid&&sup(F.sid);let h='';
+  switch(st.screen){
+  case 'home':{const low=D.supplies.filter(isLow).length;
+   h=`<div class="pad"><h2>Our home</h2><div class="tiles"><div class="tile"><b>${low}</b><small>Low stock</small></div><div class="tile"><b>${nearBatches().length}</b><small>Near expiry</small></div><div class="tile"><b>${low}</b><small>To buy</small></div></div>
+   ${st.msg?`<div class="msg">${st.msg}</div>`:''}<button class="bigscan" onclick="go('to','scan')">📷 Scan</button><p class="mute" style="text-align:center">Scan anything: a product, or a Label on an Asset or a Location. The app asks what you’re doing.</p></div>`;break}
+  case 'scan':h=viewfinder('Scan a product or a Label')+(st.msg?`<div class="msg warn">${st.msg}</div>`:'')+`<div class="foot"><button class="ghost" onclick="go('to','home')">Cancel</button></div>`;break;
+  case 'choose':h=`<div class="hero"><small class="mute">Scanned</small><h2>${esc(s.name)}</h2><div class="mute">${onHand(s.id)} ${s.unit} at home ${isLow(s)?'<span class="badge warn">Low stock</span>':''}</div></div>
+   <div class="big2"><button onclick="go('startAdd')">🛒 I bought some<small>Add to the inventory</small></button><button onclick="go('startUse')" ${onHand(s.id)?'':'disabled'}>🍳 I used some<small>Take off the oldest first</small></button><button onclick="go('to','supply')" style="height:56px;font-size:15px">👀 Just show me</button></div>`;break;
+  case 'qty':h=this.prog('qty')+`<div class="q"><h2>How many ${s.unit} did you buy?</h2>${stepper('qty',s.unit)}<div class="chips">${[1,2,3,4,6].map(n=>n*F.perScan).map(n=>`<button class="chip ${F.qty===n?'on':''}" onclick="go('f','qty',${n})">${n}</button>`).join('')}</div></div>`+this.foot('choose','next');break;
+  case 'expiry':h=this.prog('expiry')+`<div class="q"><h2>When does it expire?</h2>${expiryField('Date on the pack')}<p class="mute">Several packs with different dates? Save this one, then scan again for the next date.</p></div>`+this.foot('qty','next');break;
+  case 'where':h=this.prog('where')+`<div class="q"><h2>Where are you putting it?</h2>${[s.loc,...D.locations.map(l=>l.id).filter(id=>id!==s.loc)].map(id=>`<button class="opt ${F.loc===id?'on':''}" onclick="go('f','loc','${id}')">${esc(loc(id).name)}${id===s.loc?' <small class="mute">(usual)</small>':''}</button>`).join('')}</div>`+this.foot(s.expires?'expiry':'qty','saveAdd','Save');break;
+  case 'added':h=`<div class="q" style="text-align:center"><div style="font-size:48px">✓</div><h2>${esc(st.done)}</h2><p class="mute">${onHand(s.id)} ${s.unit} at home now.</p></div><div class="foot"><button class="ghost" onclick="go('to','home')">Done</button><button class="primary" onclick="go('to','scan')">Scan next</button></div>`;break;
+  case 'useqty':{const b=batchesOf(s.id)[0];h=`<div class="q"><h2>How many ${s.unit} did you use?</h2>${stepper('qty',s.unit)}<p class="mute">${onHand(s.id)} at home. Takes from the oldest Batch first${b?` (${fmt(b.expiry)})`:''}.</p></div>`+this.foot('choose','saveUse','Save');break}
+  case 'used':h=`<div class="q" style="text-align:center"><div style="font-size:48px">✓</div><h2>${esc(st.done)}</h2><p>${onHand(s.id)} ${s.unit} left.</p>${isLow(s)?'<div class="note warn">Low stock. Added to the Shopping list.</div>':''}</div><div class="foot"><button class="ghost" onclick="go('to','home')">Done</button><button class="primary" onclick="go('to','scan')">Scan next</button></div>`;break;
+  case 'new1':h=`<div class="q"><h2>New product</h2><div class="mute">${F.code}</div>${lookupNote()}<div class="field"><label>Name on the pack</label><input value="${esc(F.product)}" onchange="go('f','product',this.value)"></div></div>`+this.foot('scan','toNew2');break;
+  case 'new2':h=`<div class="q"><h2>Which Supply is it?</h2><p class="mute">The general thing, whatever the brand.</p>${D.supplies.map(x=>`<button class="opt ${F.target===x.id?'on':''}" onclick="go('f','target','${x.id}')">${esc(x.name)}</button>`).join('')}<button class="opt ${F.target==='__new'?'on':''}" onclick="go('f','target','__new')">+ Something new</button>${newSupplyFields()}<div class="field"><label>One scan of this barcode adds</label>${stepper('perScan','units')}</div></div>`+this.foot('new1','finishNew');break;
+  case 'weighed':h=`<div class="q"><h2>Shop-weighed item</h2><p class="mute">This code only says the weight and price. Which Supply is it?</p>${D.supplies.map(x=>`<button class="opt" onclick="go('pickWeighed','${x.id}')">${esc(x.name)}</button>`).join('')}</div>`;break;
+  case 'asset':h=`<div class="pad">${assetCard(st.r.a)}</div><div class="foot"><button class="ghost" onclick="go('to','home')">Close</button></div>`;break;
+  case 'location':h=`<div class="pad">${locationCard(st.r.l)}</div><div class="foot"><button class="ghost" onclick="go('to','home')">Close</button></div>`;break;
+  case 'supply':h=`<div class="pad">${supplyCard(s)}</div>`+`<div class="foot"><button class="ghost" onclick="go('to','choose')">Back</button></div>`;break;
+  }
+  return `<div class="vb">${h}</div>`;
+ },
+ on:{
+  to:x=>{VB.st.screen=x;if(x!=='scan')VB.st.msg=''},
+  startAdd:()=>{const s=sup(F.sid);Object.assign(F,{qty:F.perScan||1,expiry:'',loc:s.loc});VB.st.screen='qty'},
+  startUse:()=>{F.qty=1;VB.st.screen='useqty'},
+  next:()=>{const st=VB.st,s=VB.steps();st.screen=s[s.indexOf(st.screen)+1]},
+  saveAdd:()=>{const s=sup(F.sid);addBatch(F.sid,F.qty,F.expiry,F.loc);VB.st.done=`Added ${F.qty} ${s.unit} of ${s.name}`;VB.st.screen='added'},
+  saveUse:()=>{const s=sup(F.sid);useSupply(F.sid,F.qty);VB.st.done=`Used ${F.qty} ${s.unit} of ${s.name}`;VB.st.screen='used'},
+  toNew2:()=>{VB.st.screen='new2'},
+  finishNew:()=>{const sid=finishNew();if(!sid)return;F={sid,perScan:+F.perScan||1};VB.st.screen='choose'},
+  pickWeighed:id=>{F={sid:id,perScan:1};VB.st.screen='choose'},
+ }
+};
+
+// ================= Variant C: pick the job first, one form per scan =================
+const VC={key:'C',name:'Pick the job first, then one form per scan',
+ reset(){this.st={screen:'home',purpose:null,sheet:null,msg:'',warn:false,session:[],label:null};F={}},
+ scanning(){return this.st.screen==='scan'&&!this.st.sheet},
+ onScan(code){
+  const st=this.st,r=identify(code);st.msg='';st.warn=false;st.label=null;card.mode=null;
+  const isLabel=r.kind==='asset'||r.kind==='location';
+  if(r.kind==='junk'){st.msg='⚠ Not a product barcode or one of our Labels.';st.warn=true;return}
+  if(st.purpose==='label'){ if(isLabel){st.screen=r.kind;st.r=r} else {st.msg='That’s a product barcode, not a Label.';st.warn=true} return }
+  if(isLabel){st.msg='That’s a Label.';st.warn=true;st.label=r;return}
+  if(st.purpose==='add'){
+   if(r.kind==='barcode') F={kind:'known',sid:r.s.id,product:r.b.product,brand:r.b.brand,qty:r.b.perScan,expiry:'',loc:r.s.loc};
+   else F=newForm(r);
+   st.sheet='add';
+  }else{
+   if(r.kind==='barcode'){F={kind:'known',sid:r.s.id,qty:1};st.sheet='use'}
+   else if(r.kind==='weighed'){F={kind:'weighed',target:'',qty:1};st.sheet='use'}
+   else{st.msg='Not in the inventory, so there’s nothing to use.';st.warn=true}
+  }
+ },
+ sheetHTML(){
+  const st=this.st,s=F.sid&&sup(F.sid);
+  const btns=`<div class="row" style="margin-top:12px"><button class="ghost" onclick="go('save',false)">Save &amp; finish</button><button class="primary" onclick="go('save',true)">Save &amp; scan next</button></div><button class="ghost" style="margin-top:8px;border:0;color:var(--mute)" onclick="go('closeSheet')">Cancel</button>`;
+  if(st.sheet==='add'){
+   if(F.kind==='known') return `<h3>${esc(s.name)}</h3><div class="mute">${esc(F.brand)} ${esc(F.product)} · ${onHand(s.id)} ${s.unit} at home</div><div class="field"><label>How many</label>${stepper('qty',s.unit)}</div>${s.expires?expiryField():''}${locationSelect()}${btns}`;
+   const ts=sup(F.target);
+   return `<h3>${F.kind==='weighed'?'Shop-weighed item':'New product'}</h3><div class="mute">${F.code}</div>${F.kind==='weighed'?supplySelect('Which Supply is it?'):newProductFields()}<div class="field"><label>How many</label>${stepper('qty',ts?ts.unit:'')}</div>${!ts||ts.expires?expiryField():''}${locationSelect()}${btns}`;
+  }
+  if(F.kind==='weighed'&&!F.sid) return `<h3>Shop-weighed item</h3>${supplySelect('Which Supply did you use?')}<div class="field"><label>How many</label>${stepper('qty','')}</div>${btns}`;
+  const b=batchesOf(s.id)[0];
+  return `<h3>Used: ${esc(s.name)}</h3><div class="field"><label>How many</label>${stepper('qty',s.unit)}</div><div class="note">Takes from: ${b?`${fmt(b.expiry)} Batch (${b.qty} there)`:'nothing recorded'} · ${onHand(s.id)-F.qty} left after</div>${btns}`;
+ },
+ render(){
+  const st=this.st;let h='';
+  if(st.screen==='home'){
+   const low=D.supplies.filter(isLow),near=nearBatches();
+   h=`<div class="head"><h2>Our home</h2><div class="mute">${D.supplies.length} Supplies · ${D.assets.filter(a=>!a.disposed).length} Assets</div></div>
+   ${st.msg?`<div class="msg">${st.msg}</div>`:''}
+   <div class="jobs"><button class="job" onclick="go('start','add')"><span>🛒</span><div><b>Put away shopping</b><small>Scan each thing you bought</small></div></button>
+   <button class="job" onclick="go('start','use')"><span>🍳</span><div><b>Use something</b><small>Scan what you finished or opened</small></div></button>
+   <button class="job" onclick="go('start','label')"><span>🏷️</span><div><b>Scan a Label</b><small>See an Asset or what’s in a Location</small></div></button></div>
+   <div class="att"><div class="mute" style="border:0;font-size:12px">NEEDS ATTENTION</div>${low.map(s=>`<div><span>${esc(s.name)}</span><span class="badge warn">Low stock · ${onHand(s.id)}</span></div>`).join('')}${near.map(b=>`<div><span>${esc(sup(b.supply).name)}</span><span class="badge warn">Expires ${fmt(b.expiry)}</span></div>`).join('')}</div>`;
+  }else if(st.screen==='scan'){
+   const t={add:'🛒 Putting away shopping',use:'🍳 Using something',label:'🏷️ Scanning a Label'}[st.purpose];
+   h=`<div class="topbar"><b>${t}</b><button onclick="go('finish')">Finish</button></div>`+viewfinder(st.purpose==='label'?'Scan the QR Label':'Scan the barcode');
+   if(st.msg) h+=`<div class="msg ${st.warn?'warn':''}">${st.msg}${st.label?` <button class="chip" onclick="go('openLabel')">Open it</button>`:''}</div>`;
+   if(st.session.length) h+=`<div class="session"><div class="mute" style="font-size:12px">THIS TIME</div>${st.session.map(x=>`<div>${esc(x)}</div>`).join('')}</div>`;
+   if(st.sheet) h+=`<div class="scrim"></div><div class="sheet">${this.sheetHTML()}</div>`;
+  }else{
+   h=`<div class="topbar"><b>🏷️ Label</b><button onclick="go('backToScan')">Scan another</button></div><div class="pad">${st.screen==='asset'?assetCard(st.r.a):locationCard(st.r.l)}</div><div class="pad"><button class="ghost" onclick="go('finish')">Close</button></div>`;
+  }
+  return `<div class="vc" style="display:flex;flex-direction:column;flex:1;position:relative">${h}</div>`;
+ },
+ on:{
+  start:p=>{Object.assign(VC.st,{screen:'scan',purpose:p,session:[],msg:'',sheet:null})},
+  finish:()=>{const n=VC.st.session.length;Object.assign(VC.st,{screen:'home',sheet:null,msg:n?`✓ ${n} saved.`:''})},
+  closeSheet:()=>{VC.st.sheet=null},
+  backToScan:()=>{VC.st.screen='scan';VC.st.msg=''},
+  openLabel:()=>{const r=VC.st.label;VC.st.r=r;VC.st.purpose='label';VC.st.screen=r.kind;VC.st.label=null},
+  save:next=>{
+   const st=VC.st;let sid=F.sid;
+   if(!sid){ sid=finishNew(); if(!sid) return; }
+   const s=sup(sid);
+   if(st.sheet==='add'){addBatch(sid,F.qty,F.expiry,F.loc);st.session.unshift(`+${F.qty} ${s.unit} ${s.name}`)}
+   else{useSupply(sid,F.qty);st.session.unshift(`−${F.qty} ${s.unit} ${s.name}${isLow(s)?' (now Low stock)':''}`)}
+   st.sheet=null; if(!next) VC.on.finish();
+  },
+ }
+};
+
+// ---------- wiring ----------
+const VARIANTS=[VA,VB,VC];
+let V=VA;
+function go(name,...a){(V.on[name]||common[name])(...a);render()}
+function scan(code){
+ if(!code) return;
+ if(!V.scanning()){simMsg='The camera isn’t open on the phone right now. Open a scan screen first.';renderSide();return}
+ simMsg='';V.onScan(code);render();
+}
+let simMsg='';
+function setVariant(k,push){
+ V=VARIANTS.find(v=>v.key===k)||VA; V.reset(); card.mode=null;
+ if(push){try{history.replaceState(null,'','?variant='+V.key)}catch(e){}}
+ document.getElementById('vlabel').textContent=`${V.key} · ${V.name}`; render();
+}
+function cycle(d){const i=VARIANTS.indexOf(V);setVariant(VARIANTS[(i+d+VARIANTS.length)%VARIANTS.length].key,true)}
+addEventListener('keydown',e=>{const t=e.target;if(t.matches&&t.matches('input,textarea,select,[contenteditable]'))return;if(e.key==='ArrowLeft')cycle(-1);if(e.key==='ArrowRight')cycle(1)});
+function setHome(v){D.home=v;if(v)D.actions.forEach(a=>a.sent=true);render()}
+function setNet(v){D.internet=v;render()}
+
+function render(){
+ const unsent=D.actions.filter(a=>!a.sent).length;
+ document.getElementById('phone').innerHTML=`<div class="sbar"><b>9:41</b><span>${D.home?'🏠 Home Wi-Fi · synced':`📶 Away${D.internet?'':' · no internet'} · ${unsent} unsent`}</span></div><div class="screen">${V.render()}</div>`;
+ renderSide();
+}
+function renderSide(){
+ const unsent=D.actions.filter(a=>!a.sent).length;
+ document.getElementById('side').innerHTML=`
+ <div class="panel"><h4>Simulated scanner</h4><div class="scanbtns">${SAMPLES.map(([t,c,n])=>`<button onclick="scan('${c}')">${esc(t)}<small>${esc(n)}</small></button>`).join('')}</div>
+  <div class="row" style="margin-top:8px"><input id="custom" placeholder="or type any code"><button class="ghost" style="flex:none;width:auto" onclick="scan(document.getElementById('custom').value)">Scan</button></div>
+  ${simMsg?`<div class="note warn">${simMsg}</div>`:''}</div>
+ <div class="panel"><h4>Where the phone is</h4>
+  <label><input type="checkbox" style="width:auto" ${D.home?'checked':''} onchange="setHome(this.checked)"> At home (server reachable, so Actions sync straight away)</label><br>
+  <label><input type="checkbox" style="width:auto" ${D.internet?'checked':''} onchange="setNet(this.checked)"> Has internet (Open Food Facts lookups)</label></div>
+ <div class="panel"><h4>Actions recorded · ${unsent} unsent</h4><div class="log">${D.actions.map(a=>`<div>${a.sent?'✅':'⏳'} ${esc(a.summary)}<br><code>${a.type}</code> <span class="mute">${a.at}</span></div>`).join('')||'<span class="mute">None yet. These are what sync would send.</span>'}</div></div>
+ <div class="panel"><h4>Inventory</h4><table><tr><th>Supply</th><th>On hand</th><th>Batches</th></tr>${D.supplies.map(s=>`<tr><td>${esc(s.name)} ${isLow(s)?'<span class="badge warn">low</span>':''}</td><td>${onHand(s.id)} ${s.unit}</td><td>${batchesOf(s.id).map(b=>`${b.qty}× ${b.expiry?fmt(b.expiry):'–'} @${esc(loc(b.loc).name)}`).join('<br>')}</td></tr>`).join('')}</table>
+  <table style="margin-top:8px"><tr><th>Asset</th><th>Location</th><th></th></tr>${D.assets.map(a=>`<tr><td>${esc(a.name)}</td><td>${esc(loc(a.loc).name)}</td><td>${a.disposed?'<span class="badge">Disposed</span>':''}</td></tr>`).join('')}</table></div>`;
+}
+setVariant(new URLSearchParams(location.search).get('variant')||'A',false);
+</script>
+</body>
+</html>
