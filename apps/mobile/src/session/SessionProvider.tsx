@@ -9,8 +9,9 @@ import { createApi } from '../api/client';
 import { db } from '../db/client';
 import { createSyncEngine, type SyncState } from '../sync/engine';
 import { emptyInventory, type Inventory, replay } from '../sync/inventory';
+import { uploadPhotos } from '../photos/phonePhotos';
 import { phoneLocal } from '../sync/phoneLocal';
-import { connect, type ConnectRequest, finishFirstSync, loadSession, type Session } from './session';
+import { connect, type ConnectRequest, finishFirstSync, KEYS, loadSession, type Session } from './session';
 import { phoneStore } from './store';
 
 interface SessionContext {
@@ -69,7 +70,18 @@ export function SessionProvider({ children }: { children: ReactNode }) {
   );
 
   /** Syncing never leaves the app stuck: on an unexpected error it shows what is stored. */
-  const syncQuietly = useCallback(() => thenReload(engine.sync().then(() => undefined, () => undefined)), [thenReload]);
+  const syncQuietly = useCallback(
+    () =>
+      thenReload(
+        engine.sync().then(async (result) => {
+          // Photos go separately, once the Actions that name them are in.
+          if (result !== 'synced') return;
+          const [server, key] = await Promise.all([phoneStore.get(KEYS.server), phoneStore.get(KEYS.deviceKey)]);
+          if (server && key) await uploadPhotos(server, key);
+        }).catch(() => undefined),
+      ),
+    [thenReload],
+  );
 
   // Every stored change (an Action recorded, a sync finished) refreshes what is shown.
   useEffect(() => {

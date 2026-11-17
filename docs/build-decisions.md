@@ -60,3 +60,17 @@ Decisions made while building v1 ([`docs/spec/v1.md`](spec/v1.md)) that the spec
 - **A retired Label** shows "This Label was replaced. Use the new Label on this thing." on the camera screen, rather than opening the thing.
 - **"No Label yet"** on Asset and Location pages adds "scan a Blank label to attach one", because attaching starts from the scan.
 - **Attach to a new Asset** opens the new-Asset form, then records `asset.created` and `label.attached` together.
+
+## Photos: upload, cache and resize (#31)
+
+- **Server**:
+  - `PUT /photos/:id` takes the photo as `image/jpeg` and needs the Device key. It is limited to 5 MB, far above a resized photo. A repeat upload is accepted without rewriting the file.
+  - `GET /photos/:id` is open on the LAN, like the rest of the dashboard API, so the web can show photos.
+  - Files are stored as `<photos folder>/<id>.jpg`, with `PHOTOS_DIR` defaulting to `apps/server/photos` (git-ignored) on the dev PC and `/data/photos` in the image. The dev Compose file keeps `/data` in an `app-data` volume; the production `/srv/inventory` mapping comes with the deployment tooling (#38).
+- **Phone**:
+  - It takes or picks a photo (`expo-image-picker`), resizes it to 1600 px on the long edge (never upscaling), saves it as JPEG at 0.8 quality (`expo-image-manipulator`), keeps it in the documents folder, and queues its id in `app_meta.pending_photos`.
+  - The Action naming the photo is recorded at once. The file uploads after each successful sync, oldest first, and stops at the first sign of being away.
+  - Other phones download a photo on first view into the cache folder. Away from home, an uncached photo shows a "Photo at home" placeholder.
+- **Where photos appear**: Asset photos and the receipt photo, on the Asset page. Barcode photos (from new products) aren't taken in v1; the field stays empty.
+- **Two phones adding photos to the same Asset at once**: `photoIds` is a detail edit, so the last one to arrive wins and the other photo is dropped from the list (the file stays on the server). This is rare in a household, and accepted for v1.
+- **New native modules** (image picker, image manipulator, file system) mean the next APK build is needed before photos work on a phone.

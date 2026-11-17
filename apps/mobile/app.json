@@ -39,6 +39,13 @@
           "barcodeScannerEnabled": true
         }
       ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Allow Inventory to use your photos to add pictures of Assets and receipts.",
+          "cameraPermission": "Allow Inventory to use the camera to take pictures of Assets and receipts."
+        }
+      ],
       "./plugins/with-short-native-build-dir"
     ],
     "experiments": {

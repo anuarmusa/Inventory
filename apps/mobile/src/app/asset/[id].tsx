@@ -1,9 +1,11 @@
 import { randomUUID } from 'expo-crypto';
 import { router, Stack, useLocalSearchParams } from 'expo-router';
 import { useMemo, useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Alert, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { history } from '../../history/history';
 import { HistoryList } from '../../history/HistoryList';
+import { takePhoto } from '../../photos/phonePhotos';
+import { Photo } from '../../photos/Photo';
 import { localToday } from '../../home/lists';
 import { formatDate } from '../../scan/dates';
 import { labelOf } from '../../scan/labels';
@@ -44,6 +46,23 @@ export default function AssetPage() {
   const location = asset.locationId ? inventory.locations[asset.locationId] : undefined;
   const category = asset.categoryId ? inventory.categories[asset.categoryId] : undefined;
   const costSen = parseRinggit(cost);
+
+  /** Takes or picks a photo; the Action names it now, and the file uploads when the phone is home. */
+  const addPhoto = (kind: 'photo' | 'receipt') =>
+    Alert.alert(kind === 'photo' ? 'Add a photo' : 'Add the receipt', undefined, [
+      { text: 'Cancel', style: 'cancel' },
+      ...(['camera', 'library'] as const).map((source) => ({
+        text: source === 'camera' ? 'Take a photo' : 'Choose from photos',
+        onPress: () =>
+          void takePhoto(source)
+            .then((photoId) => {
+              if (!photoId) return;
+              const changes = kind === 'photo' ? { photoIds: [...asset.photoIds, photoId] } : { receiptPhotoId: photoId };
+              return record({ type: 'asset.edited', payload: { assetId: asset.id, changes } });
+            })
+            .catch((e: Error) => Alert.alert('No photo', e.message)),
+      })),
+    ]);
   const owned = !asset.disposedAt && !asset.deletedAt;
   const warrantyOver = asset.warrantyEnd !== null && asset.warrantyEnd < localToday();
 
@@ -79,8 +98,31 @@ export default function AssetPage() {
       <Row k="Serial" v={asset.serialNumber} />
       <Row k="Warranty" v={asset.warrantyEnd ? `until ${formatDate(asset.warrantyEnd)}${warrantyOver ? ' (ended)' : ''}` : null} />
       <Row k="Label" v={label ?? 'No Label yet: scan a Blank label to attach one'} />
-      <Row k="Photos" v={asset.photoIds.length ? `${asset.photoIds.length} photo${asset.photoIds.length > 1 ? 's' : ''}` : 'None yet'} />
       {asset.notes && <Text style={ui.body}>{asset.notes}</Text>}
+
+      <Text style={styles.heading}>Photos</Text>
+      <ScrollView horizontal contentContainerStyle={{ gap: 8 }}>
+        {asset.photoIds.map((p) => (
+          <Photo key={p} id={p} />
+        ))}
+        {asset.receiptPhotoId && (
+          <View style={{ alignItems: 'center' }}>
+            <Photo id={asset.receiptPhotoId} />
+            <Text style={ui.mute}>Receipt</Text>
+          </View>
+        )}
+        {asset.photoIds.length === 0 && !asset.receiptPhotoId && <Text style={ui.mute}>None yet.</Text>}
+      </ScrollView>
+      {owned && (
+        <View style={styles.buttons}>
+          <Pressable style={styles.button} onPress={() => addPhoto('photo')}>
+            <Text>Add photo</Text>
+          </Pressable>
+          <Pressable style={styles.button} onPress={() => addPhoto('receipt')}>
+            <Text>{asset.receiptPhotoId ? 'Replace receipt' : 'Add receipt'}</Text>
+          </Pressable>
+        </View>
+      )}
 
       {owned && (
         <View style={styles.buttons}>

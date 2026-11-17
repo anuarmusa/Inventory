@@ -6,6 +6,7 @@ import type { Db } from './db/client.ts';
 import { registerApkRoutes } from './apk-routes.ts';
 import { appVersionsFrom } from './app-versions.ts';
 import { registerPairingRoutes } from './pairing/routes.ts';
+import { registerPhotoRoutes } from './photo-routes.ts';
 import { registerSyncRoutes } from './sync/routes.ts';
 
 export interface AppOptions {
@@ -22,6 +23,8 @@ export interface AppOptions {
   publicAddress?: string;
   /** The clock; tests replace it. */
   now?: () => Date;
+  /** The photos folder; photo routes are registered when it and the database are given. */
+  photosDir?: string;
 }
 
 export function buildApp({
@@ -32,6 +35,7 @@ export function buildApp({
   appVersions = appVersionsFrom(apkDir),
   publicAddress,
   now,
+  photosDir,
 }: AppOptions = {}): FastifyInstance {
   const app = Fastify({ logger });
 
@@ -41,6 +45,7 @@ export function buildApp({
   if (db) {
     registerSyncRoutes(app, { db, appVersions });
     registerPairingRoutes(app, { db, publicAddress, now });
+    if (photosDir) registerPhotoRoutes(app, { db, photosDir });
   }
 
   if (webRoot && existsSync(webRoot)) {
