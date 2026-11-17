@@ -1,0 +1,35 @@
+{
+  "expo": {
+    "name": "Inventory",
+    "slug": "inventory",
+    "version": "0.1.0",
+    "scheme": "inventory",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "platforms": [
+      "android"
+    ],
+    "android": {
+      "package": "com.household.inventory",
+      "versionCode": 1,
+      "adaptiveIcon": {
+        "backgroundColor": "#E6F4FE",
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "backgroundImage": "./assets/android-icon-background.png",
+        "monochromeImage": "./assets/android-icon-monochrome.png"
+      },
+      "predictiveBackGestureEnabled": false
+    },
+    "plugins": [
+      "expo-sqlite",
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "usesCleartextTraffic": true
+          }
+        }
+      ]
+    ]
+  }
+}
