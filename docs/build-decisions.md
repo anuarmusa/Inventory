@@ -52,3 +52,11 @@ Decisions made while building v1 ([`docs/spec/v1.md`](spec/v1.md)) that the spec
 - **Dates in forms** are typed day/month/year, with no date-picker library (none is installed, and adding one needs a native rebuild).
 - **Settings** holds Locations and Categories (add, rename, delete only when empty, with a message saying what's in the way) and links to Unsent changes. The household Near-expiry default stays at 7 days: no Action changes it in v1.
 - **Photos** show as a count on the Asset page until "Photos: upload, cache and resize" (#31).
+
+## Labels in the app (#32)
+
+- **A Blank label is any `INV1:` code linked to nothing**, including codes the household has never seen. Printed sheets of blank Labels aren't recorded anywhere until one is attached, and `label.attached` creates the Label on the server.
+- **Scanning a Label opens its page from the camera.** The basket stays in the scan screens underneath, and the camera ignores what it sees while a page is on top, so it doesn't open the same Label twice.
+- **A retired Label** shows "This Label was replaced. Use the new Label on this thing." on the camera screen, rather than opening the thing.
+- **"No Label yet"** on Asset and Location pages adds "scan a Blank label to attach one", because attaching starts from the scan.
+- **Attach to a new Asset** opens the new-Asset form, then records `asset.created` and `label.attached` together.
