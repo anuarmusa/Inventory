@@ -33,7 +33,8 @@ function env(name) {
   const file = join(root, '.env');
   if (!existsSync(file)) return undefined;
   const line = readFileSync(file, 'utf8').split(/\r?\n/).find((l) => l.startsWith(`${name}=`));
-  return line?.slice(name.length + 1).trim() || undefined;
+  // Values may be quoted (the setup wizard writes KEY='value').
+  return line?.slice(name.length + 1).trim().replace(/^(['"])(.*)\1$/, '$2') || undefined;
 }
 
 function run(command, { input } = {}) {
@@ -79,7 +80,7 @@ for (const pkg of ['apps/mobile/package.json', 'apps/server/package.json']) writ
 const apk = `apps/mobile/dist/inventory-${version}.apk`;
 if (!flag('skip-apk')) {
   console.log('› Building the APK');
-  run('node apps/mobile/scripts/build-apk.mjs');
+  run('node apps/mobile/scripts/build-apk.mjs --require-release-key');
 }
 const latest = latestJson(version, notes);
 writeJson('apps/mobile/dist/latest.json', latest);

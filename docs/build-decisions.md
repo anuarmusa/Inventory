@@ -132,3 +132,16 @@ Decisions made while building v1 ([`docs/spec/v1.md`](spec/v1.md)) that the spec
 - **Restore replaces the whole database** (drop, create, `pg_restore`), so tables a newer version added don't linger. It then sets a new **restore epoch**: every pull carries it, and a phone that sees a new one forgets what it pulled and takes everything again, keeping its Unsent Actions. Without this, phones would keep rows the restored server no longer has, because sequence numbers rewind.
 - **Versions**: deploy bumps the patch version (or `--version`) and the Android version code, and sets the same version on the app, the mobile package and the server package (shown in the footer). The server's `.env` keeps `APP_VERSION` and `PREVIOUS_APP_VERSION`. The last two images and APKs are kept.
 - **Deploy needs `DEPLOY_HOST`** in the dev PC's `.env` and uses the built-in OpenSSH `ssh`/`scp` (key from the setup wizard). It doesn't commit the version bump; it reminds you to.
+
+## First server setup wizard and APK signing key (#39)
+
+- **The wizard runs on the dev PC** (`scripts/setup-server.sh`, in Git Bash) and does the server's part over SSH wherever it can: Docker, folders, `.env`, ufw, the USB drive, deploy, test restore. Only the router reservation and installing `openssh-server` need hands on the router and the server's keyboard.
+- **Its stages follow #39 and spec §11.** It writes `SERVER_USER`, `SERVER_IP`, `DEPLOY_HOST`, `ROUTER_URL`, `LAN_SUBNET`, `USB_PARTITION`, `INVENTORY_KEYSTORE` and `INVENTORY_KEY_ALIAS` to the dev PC's `.env`, so a re-run offers them as defaults.
+- **Docker** is installed with Docker's official install script (`get.docker.com`), and the user is added to the `docker` group.
+- **The database password** is generated (48 hex characters), written only to `/srv/inventory/.env` on the server (mode 600), and shown once for the password manager.
+- **ufw**: deny incoming by default; allow ports 22 and 80 from the home network only (default: the server's /24). The wizard warns and confirms first, since a wrong network would cut SSH off.
+- **USB drive**: formatted as ext4 only after a typed confirmation, mounted by UUID with `nofail` (the server still boots without it, and backups then show "USB drive not mounted"), and marked with `.inventory-backups`.
+- **Release key**: RSA 4096, valid 100 years, alias `inventory`, at `~/.inventory/inventory-release.keystore`. The password is never stored: `build-apk` asks for it (or reads `INVENTORY_KEYSTORE_PASSWORD` from the environment), and the `with-release-signing` config plugin passes it to Gradle through environment variables.
+- **`pnpm run deploy` refuses a debug-signed APK** (`--require-release-key`): one on the phones would force an uninstall once the real key arrives. A plain `pnpm build:apk` still falls back to the debug key, for trying things out.
+- **The off-server copy of the key** goes into the dev PC's pulled-backups folder, with a reminder to keep that folder off the PC too.
+- **The Windows Firewall rule** ("Inventory dev": TCP 3000, 5173 and 8080, private networks only) is added through an elevated PowerShell prompt.

@@ -58,7 +58,7 @@ Local database changes: edit `apps/mobile/src/db/schema.ts`, then `pnpm --filter
 
 ## Deploying and operating
 
-The home server runs `compose.yaml` from `/srv/inventory`, with its `.env` (database password, `TZ`, `APP_VERSION`). Everything it keeps lives there: `db/`, `photos/`, `apk/` and `backups/`. First-time setup is a step-by-step wizard (see "First server setup").
+The home server runs `compose.yaml` from `/srv/inventory`, with its `.env` (database password, `TZ`, `APP_VERSION`). Everything it keeps lives there: `db/`, `photos/`, `apk/` and `backups/`. First-time setup is a step-by-step wizard (see "First server setup" below).
 
 - **Deploy** from the dev PC: `pnpm run deploy`. It bumps the version, asks for a one-line "what's new", builds the APK and the image, copies them over SSH (`DEPLOY_HOST` in `.env`), and starts the new version. Commit the version bump afterwards. `pnpm run deploy -- --dry-run --notes "…"` prints the steps without running them.
 - **On start** the app takes a backup, applies pending migrations, then serves. If a migration fails, the container stops and leaves `MIGRATION_FAILED`.
@@ -66,3 +66,20 @@ The home server runs `compose.yaml` from `/srv/inventory`, with its `.env` (data
 - **Restore** on the server: `scripts/restore.sh <backup folder>`. It replaces the database and photos, and phones sync everything again.
 - **Roll back** on the server: `scripts/rollback.sh`. It starts the previous image, first restoring the pre-migration backup if the current version changed the database.
 - **On the dev PC**, `compose.override.yaml` is merged in automatically: `docker compose up -d --build` builds from source and serves on http://localhost:8080 with Docker volumes and no USB drive.
+
+## First server setup
+
+Run once, from the repo root on the dev PC, in Git Bash: `scripts/setup-server.sh`. It walks through each step and can be re-run (it keeps what's already done):
+
+1. Checklist, and the server's login name.
+2. Reserving the server's address in the router (writes `SERVER_IP` and `DEPLOY_HOST` to `.env`).
+3. An SSH key from this PC.
+4. Docker on the server.
+5. `/srv/inventory` and the server's `.env`, with a new database password for your password manager.
+6. ufw: ports 80 and SSH, from the home network only.
+7. The USB backup drive: formatted as ext4 if needed (with a confirmation), mounted at `/mnt/inventory-usb`, and marked for backups.
+8. The app's release signing key, kept in `~/.inventory/` outside the repo. Its password goes in your password manager and is never stored on disk.
+9. A Windows Firewall rule so phones can reach the dev server.
+10. The first `pnpm run deploy`.
+11. A test backup and restore.
+12. Copies of the backups and the signing key off the server.

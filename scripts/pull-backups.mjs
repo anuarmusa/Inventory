@@ -10,7 +10,7 @@ const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const env = (name) =>
   process.env[name] ??
   (existsSync(join(root, '.env'))
-    ? readFileSync(join(root, '.env'), 'utf8').split(/\r?\n/).find((l) => l.startsWith(`${name}=`))?.slice(name.length + 1).trim()
+    ? readFileSync(join(root, '.env'), 'utf8').split(/\r?\n/).find((l) => l.startsWith(`${name}=`))?.slice(name.length + 1).trim().replace(/^(['"])(.*)\1$/, '$2')
     : undefined);
 
 const host = env('DEPLOY_HOST');

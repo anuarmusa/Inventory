@@ -2,11 +2,14 @@
 // Output: apps/mobile/dist/inventory-<version>.apk
 //
 // Needs JAVA_HOME (JDK 17) and ANDROID_HOME (Android SDK) to be set.
-// Signing: until the household's release key exists (see "First server setup wizard and APK
-// signing key"), the generated project signs release builds with the debug key.
+// Signing: with INVENTORY_KEYSTORE (and INVENTORY_KEY_ALIAS) in the environment or the repo's .env,
+// the APK is signed with the household's release key; its password comes from
+// INVENTORY_KEYSTORE_PASSWORD or is asked for here (it is never stored). Without a key the debug key
+// signs it; `--require-release-key` (used by the deploy script) refuses that.
 import { execFileSync } from 'node:child_process';
 import { copyFileSync, existsSync, mkdirSync, readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
+import { createInterface } from 'node:readline';
 import { fileURLToPath } from 'node:url';
 
 const windows = process.platform === 'win32';
@@ -21,6 +24,49 @@ for (const name of ['JAVA_HOME', 'ANDROID_HOME']) {
     console.error(`${name} is not set to an existing folder. See README.md, "Android app".`);
     process.exit(1);
   }
+}
+
+// The release key's location from the repo's .env, unless already in the environment.
+const repoEnv = join(appDir, '..', '..', '.env');
+const fromEnvFile = (name) =>
+  existsSync(repoEnv)
+    ? readFileSync(repoEnv, 'utf8')
+        .split(/\r?\n/)
+        .find((l) => l.startsWith(`${name}=`))
+        ?.slice(name.length + 1)
+        .trim()
+        .replace(/^'(.*)'$/, '$1') || undefined
+    : undefined;
+for (const name of ['INVENTORY_KEYSTORE', 'INVENTORY_KEY_ALIAS']) process.env[name] ??= fromEnvFile(name);
+
+/** Asks for a password without showing it. */
+function askHidden(prompt) {
+  return new Promise((resolve) => {
+    const rl = createInterface({ input: process.stdin, output: process.stdout, terminal: true });
+    rl._writeToOutput = (s) => {
+      if (s.includes(prompt)) process.stdout.write(s);
+    };
+    rl.question(prompt, (answer) => {
+      rl.close();
+      process.stdout.write('\n');
+      resolve(answer);
+    });
+  });
+}
+
+if (process.env.INVENTORY_KEYSTORE) {
+  if (!existsSync(process.env.INVENTORY_KEYSTORE)) {
+    console.error(`The release key ${process.env.INVENTORY_KEYSTORE} isn't there (INVENTORY_KEYSTORE).`);
+    process.exit(1);
+  }
+  process.env.INVENTORY_KEYSTORE_PASSWORD ||= await askHidden('Release key password: ');
+  console.log(`› Signing with the release key (${process.env.INVENTORY_KEY_ALIAS ?? 'inventory'})`);
+} else if (process.argv.includes('--require-release-key')) {
+  console.error('No release key: set INVENTORY_KEYSTORE in .env (the first-setup wizard makes the key).');
+  console.error('A debug-signed APK on the phones would force an uninstall when the real key arrives.');
+  process.exit(1);
+} else {
+  console.log('› No release key (INVENTORY_KEYSTORE): signing with the debug key');
 }
 
 const run = (command, args, cwd) => execFileSync(command, args, { cwd, stdio: 'inherit', shell: windows });
