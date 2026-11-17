@@ -29,7 +29,19 @@
             "usesCleartextTraffic": true
           }
         }
+      ],
+      "expo-router",
+      "expo-secure-store",
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Allow Inventory to use the camera to scan barcodes and QR codes.",
+          "barcodeScannerEnabled": true
+        }
       ]
-    ]
+    ],
+    "experiments": {
+      "typedRoutes": true
+    }
   }
 }

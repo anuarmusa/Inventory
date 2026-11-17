@@ -248,3 +248,19 @@ export const mismatches = pgTable(
   },
   (t) => [index('mismatches_open_idx').on(t.resolvedAt)],
 );
+
+/**
+ * One-time pairing codes (spec §7). A code is offered on the download page, expires after
+ * 10 minutes, and is used once to pair a phone.
+ */
+export const pairingCodes = pgTable(
+  'pairing_codes',
+  {
+    code: text('code').primaryKey(),
+    expiresAt: timestamp('expires_at', { withTimezone: true }).notNull(),
+    usedAt: timestamp('used_at', { withTimezone: true }),
+    usedByDeviceId: uuid('used_by_device_id').references(() => devices.id),
+    createdAt: createdAt(),
+  },
+  (t) => [check('pairing_codes_six_digits', sql`${t.code} ~ '^[0-9]{6}$'`)],
+);

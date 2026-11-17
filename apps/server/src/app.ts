@@ -3,6 +3,7 @@ import Fastify, { type FastifyInstance } from 'fastify';
 import fastifyStatic from '@fastify/static';
 import { type AppVersions, type HealthResponse, MIN_APP_VERSION } from '@inventory/shared';
 import type { Db } from './db/client.ts';
+import { registerPairingRoutes } from './pairing/routes.ts';
 import { registerSyncRoutes } from './sync/routes.ts';
 
 export interface AppOptions {
@@ -13,6 +14,10 @@ export interface AppOptions {
   db?: Db;
   /** Latest hosted and minimum accepted app versions. */
   appVersions?: () => AppVersions;
+  /** Overrides the server address put in pairing offers. */
+  publicAddress?: string;
+  /** The clock; tests replace it. */
+  now?: () => Date;
 }
 
 export function buildApp({
@@ -20,12 +25,17 @@ export function buildApp({
   logger = false,
   db,
   appVersions = () => ({ latest: null, minimum: MIN_APP_VERSION }),
+  publicAddress,
+  now,
 }: AppOptions = {}): FastifyInstance {
   const app = Fastify({ logger });
 
   app.get('/health', async (): Promise<HealthResponse> => ({ status: 'ok' }));
 
-  if (db) registerSyncRoutes(app, { db, appVersions });
+  if (db) {
+    registerSyncRoutes(app, { db, appVersions });
+    registerPairingRoutes(app, { db, publicAddress, now });
+  }
 
   if (webRoot && existsSync(webRoot)) {
     app.register(fastifyStatic, { root: webRoot });

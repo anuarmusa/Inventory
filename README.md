@@ -52,4 +52,6 @@ pnpm --filter @inventory/mobile start         # dev server for an installed deve
 
 Release builds are signed with the debug key until the household's release key is set up.
 
+On Windows, run Expo commands from a path with an uppercase drive letter (`E:\…`, not `e:\…`): Metro and Expo Router build broken paths otherwise ("None of these files exist: …\_layout.tsx"). `build:apk` corrects this itself.
+
 Local database changes: edit `apps/mobile/src/db/schema.ts`, then `pnpm --filter @inventory/mobile db:generate`.

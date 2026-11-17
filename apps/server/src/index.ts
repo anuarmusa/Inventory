@@ -13,5 +13,11 @@ const databaseUrl = process.env.DATABASE_URL;
 if (!databaseUrl) throw new Error('DATABASE_URL is not set');
 const { db } = createDb(databaseUrl);
 
-const app = buildApp({ webRoot, logger: true, db, appVersions: appVersionsFrom(process.env.APK_DIR) });
+const app = buildApp({
+  webRoot,
+  logger: true,
+  db,
+  appVersions: appVersionsFrom(process.env.APK_DIR),
+  publicAddress: process.env.PUBLIC_ADDRESS || undefined,
+});
 await app.listen({ host: '0.0.0.0', port });
