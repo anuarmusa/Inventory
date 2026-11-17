@@ -23,6 +23,8 @@ export const KEYS = {
   lastSeq: 'last_seq',
   firstSyncDone: 'first_sync_done',
   removed: 'removed',
+  /** Supplies ticked off on this phone's Shopping list, as a JSON array of ids. */
+  shoppingTicks: 'shopping_ticks',
 } as const;
 
 export interface SessionStore {
