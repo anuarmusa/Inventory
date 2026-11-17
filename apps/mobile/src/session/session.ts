@@ -35,6 +35,8 @@ export const KEYS = {
   installGuided: 'install_guided',
   /** The daily summary's plan: what it already told and what's scheduled, as JSON. */
   alertState: 'alert_state',
+  /** The server's restore epoch last seen; a new one means a full resync. */
+  serverEpoch: 'server_epoch',
 } as const;
 
 export interface SessionStore {
@@ -107,8 +109,9 @@ export async function connect(store: SessionStore, api: Api, local: LocalStore, 
 export async function finishFirstSync(store: SessionStore, api: Api, local: LocalStore): Promise<Session> {
   const [key, server] = await Promise.all([store.get(KEYS.deviceKey), store.get(KEYS.server)]);
   if (!key || !server) return loadSession(store);
-  const { seq, changes } = await api.pull(server, key, 0);
-  await local.commitSync(changes, [], seq);
+  const { seq, changes, epoch } = await api.pull(server, key, 0);
+  await local.commitSync(changes, [], seq, { reset: true });
+  if (epoch) await store.set(KEYS.serverEpoch, epoch);
   await store.set(KEYS.firstSyncDone, '1');
   return loadSession(store);
 }

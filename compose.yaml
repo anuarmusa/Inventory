@@ -1,8 +1,14 @@
-# Development stack: the app (server + built web) and PostgreSQL.
-# `docker compose up -d db` runs only the database for `pnpm dev`;
-# `docker compose up --build` runs everything at http://localhost:8080.
-# Production settings (port 80, /srv/inventory, backups) come with the deployment tooling.
+# Production stack (spec §11): the app (server, web, APKs) and PostgreSQL. On the server this file
+# lives in /srv/inventory with its .env; `pnpm run deploy` copies it there.
+# On the dev PC, compose.override.yaml is merged in automatically (build from source, port 8080,
+# Docker volumes, no USB drive): `docker compose up -d --build` is the production-like check.
 name: inventory
+
+x-logging: &logging
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "3"
 
 services:
   db:
@@ -12,26 +18,33 @@ services:
       POSTGRES_DB: inventory
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}
       TZ: ${TZ:-Asia/Kuala_Lumpur}
-    ports:
-      - "5432:5432"
     volumes:
-      - db-data:/var/lib/postgresql/data
+      - ${DATA_DIR:-/srv/inventory}/db:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U inventory -d inventory"]
+      # Over TCP: during first-time setup Postgres answers on its socket before it accepts connections.
+      test: ["CMD-SHELL", "pg_isready -h 127.0.0.1 -U inventory -d inventory"]
       interval: 5s
       timeout: 3s
       retries: 10
     restart: unless-stopped
+    logging: *logging
 
   app:
-    build: .
+    # Tagged by version; the deploy script sets APP_VERSION in .env and keeps the last two images.
+    image: inventory-app:${APP_VERSION:-latest}
     environment:
       DATABASE_URL: postgres://inventory:${POSTGRES_PASSWORD}@db:5432/inventory
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       TZ: ${TZ:-Asia/Kuala_Lumpur}
-    ports:
-      - "8080:80"
+      PUBLIC_ADDRESS: ${PUBLIC_ADDRESS:-}
+      BACKUP_USB: ${BACKUP_USB:-required}
     volumes:
-      - app-data:/data
+      # photos/, apk/ and backups/ live here.
+      - ${DATA_DIR:-/srv/inventory}:/data
+      # The USB backup drive, mounted on the server by the first-setup wizard.
+      - ${BACKUP_USB_DIR:-/mnt/inventory-usb}:/usb
+    ports:
+      - "${HTTP_PORT:-80}:80"
     depends_on:
       db:
         condition: service_healthy
@@ -40,8 +53,6 @@ services:
       interval: 10s
       timeout: 3s
       retries: 5
+      start_period: 60s
     restart: unless-stopped
-
-volumes:
-  db-data:
-  app-data:
+    logging: *logging

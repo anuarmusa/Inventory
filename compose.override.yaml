@@ -1,0 +1,23 @@
+# Dev PC only (merged automatically; never copied to the server): builds the image from source,
+# serves on http://localhost:8080, keeps data in Docker volumes, publishes Postgres for `pnpm dev`,
+# and skips the USB backup drive.
+services:
+  db:
+    ports:
+      - "5432:5432"
+    volumes: !override
+      - db-data:/var/lib/postgresql/data
+
+  app:
+    build: .
+    image: inventory-app:dev
+    environment:
+      BACKUP_USB: "off"
+    volumes: !override
+      - app-data:/data
+    ports: !override
+      - "8080:80"
+
+volumes:
+  db-data:
+  app-data:

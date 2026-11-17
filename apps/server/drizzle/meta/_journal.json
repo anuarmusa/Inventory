@@ -36,6 +36,13 @@
       "when": 1794902324280,
       "tag": "0004_undo",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1794907371738,
+      "tag": "0005_restore_epoch",
+      "breakpoints": true
     }
   ]
 }

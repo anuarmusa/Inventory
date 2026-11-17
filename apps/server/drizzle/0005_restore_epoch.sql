@@ -1,0 +1,1 @@
+ALTER TABLE "household_settings" ADD COLUMN "epoch" uuid DEFAULT gen_random_uuid() NOT NULL;

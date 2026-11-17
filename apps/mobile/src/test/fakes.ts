@@ -24,6 +24,7 @@ export function memoryStore(initial: Record<string, string> = {}): SessionStore 
 export interface FakeServer extends Api {
   seq: number;
   rows: PulledChanges;
+  epoch: string;
   redeemed: RedeemRequest[];
   pulls: { key: string; since: number }[];
   pushes: { key: string; body: PushRequest }[];
@@ -41,6 +42,7 @@ export function fakeServer(): FakeServer {
   const server: FakeServer = {
     seq: 10,
     rows: {},
+    epoch: 'epoch-1',
     redeemed: [],
     pulls: [],
     pushes: [],
@@ -54,7 +56,7 @@ export function fakeServer(): FakeServer {
     async pull(_server, key, since) {
       if (server.pullError) throw server.pullError;
       server.pulls.push({ key, since });
-      return { seq: server.seq, changes: server.rows, app: { latest: null, minimum: '0.1.0' } };
+      return { seq: server.seq, changes: server.rows, app: { latest: null, minimum: '0.1.0' }, epoch: server.epoch };
     },
     async push(_server, key, body) {
       if (server.pushError) throw server.pushError;

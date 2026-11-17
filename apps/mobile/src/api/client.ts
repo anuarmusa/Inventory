@@ -32,6 +32,8 @@ export interface PullResult {
   /** Rows changed since the `since` asked for. */
   changes: PulledChanges;
   app: AppVersions;
+  /** Changes when the server's database is restored from a backup. */
+  epoch?: string | null;
 }
 
 export interface Api {
