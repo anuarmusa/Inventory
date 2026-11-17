@@ -1,4 +1,4 @@
-import { and, eq, gt, max, sql } from 'drizzle-orm';
+import { and, eq, gt, isNull, max, sql } from 'drizzle-orm';
 import { randomUUID } from 'node:crypto';
 import { type Action, type Taken, takeOldestFirst } from '@inventory/shared';
 import type { Tx } from '../db/client.ts';
@@ -14,6 +14,7 @@ import {
   mismatches,
   supplies,
 } from '../db/schema.ts';
+import { applyCorrection, applyUndo } from './undo.ts';
 
 /**
  * Applies one Action to the server's copy of the inventory (spec §4.3, §4.4).
@@ -28,6 +29,8 @@ export interface Outcome {
   /** What applying did, e.g. which Batches a "used" took from; kept on the Action log for Undo. */
   result: Record<string, unknown> | null;
   mismatch?: { kind: MismatchKind; details: Record<string, unknown> };
+  /** True when applying raised a Mismatch itself (an Undo that finds part of a Batch already used). */
+  raisedMismatch?: boolean;
 }
 
 export interface ApplyContext {
@@ -119,7 +122,7 @@ async function takeFromBatches(tx: Tx, supplyId: string, quantity: number, seq: 
   return { taken, shortfall, onHandBefore: live.reduce((n, b) => n + b.quantity, 0) };
 }
 
-/** When the Supply was last counted (a Stocktake that was applied), in corrected Device time. */
+/** When the Supply was last counted (a Stocktake that was applied and not undone), in corrected Device time. */
 async function latestStocktake(tx: Tx, supplyId: string): Promise<Date | null> {
   const [row] = await tx
     .select({ at: max(actions.correctedTime) })
@@ -128,6 +131,7 @@ async function latestStocktake(tx: Tx, supplyId: string): Promise<Date | null> {
       and(
         eq(actions.type, 'supply.counted'),
         eq(actions.outcome, 'applied'),
+        isNull(actions.reversedByActionId),
         sql`${actions.payload}->>'supplyId' = ${supplyId}`,
       ),
     );
@@ -470,8 +474,11 @@ export async function applyAction(tx: Tx, action: Action, { seq, correctedTime }
 
     // ---- Undo and Correction ----
     case 'action.undone':
+      return applyUndo(tx, action, { seq, correctedTime });
     case 'action.corrected':
-      // Applied by "Undo and Correction"; recorded but not yet acted on.
-      return skippedQuietly('not_supported_yet');
+      // The corrected values apply like a new Action of the same type, at the original's time.
+      return applyCorrection(tx, action, { seq, correctedTime }, (body) =>
+        applyAction(tx, { ...action, ...body } as Action, { seq, correctedTime }),
+      );
   }
 }

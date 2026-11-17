@@ -1,6 +1,8 @@
 import { Stack, useLocalSearchParams } from 'expo-router';
 import { useMemo } from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import { history } from '../../history/history';
+import { HistoryList } from '../../history/HistoryList';
 import { localToday } from '../../home/lists';
 import { formatDate } from '../../scan/dates';
 import { useSession } from '../../session/SessionProvider';
@@ -10,12 +12,13 @@ import { colors, ui } from '../../ui/styles';
 
 /**
  * The Supply page (spec §6.3): amount on hand, its Batches (expiry and Location), Barcodes, minimum
- * and restock-to. History comes with "Undo and Correction".
+ * and restock-to, and its History with Undo and Fix.
  */
 export default function SupplyPage() {
   const { id } = useLocalSearchParams<{ id: string }>();
-  const { inventory } = useSession();
+  const { inventory, unsent } = useSession();
   const d = useMemo(() => (id ? supplyDetails(inventory, id, localToday()) : null), [inventory, id]);
+  const entries = useMemo(() => (id ? history(inventory, unsent, { supplyId: id }) : []), [inventory, unsent, id]);
 
   if (!d) {
     return (
@@ -83,6 +86,9 @@ export default function SupplyPage() {
       <Text style={styles.heading}>Stock levels</Text>
       <Text style={ui.body}>Minimum: {supply.minimum ?? 'none (never Low stock)'}</Text>
       <Text style={ui.body}>Restock to: {supply.restockTo ?? 'none'}</Text>
+
+      <Text style={styles.heading}>History</Text>
+      <HistoryList entries={entries} />
     </ScrollView>
   );
 }

@@ -112,7 +112,10 @@ export function registerSyncRoutes(app: FastifyInstance, { db, appVersions }: Sy
           })
           .returning({ seq: actions.seq })) as [{ seq: number }];
         const outcome = await applyAction(tx, action, { seq, correctedTime });
-        await tx.update(actions).set({ outcome: outcome.outcome, result: outcome.result }).where(eq(actions.seq, seq));
+        await tx
+          .update(actions)
+          .set({ outcome: outcome.outcome, result: outcome.result, changedSeq: seq })
+          .where(eq(actions.seq, seq));
         if (outcome.mismatch) {
           await tx.insert(mismatches).values({
             kind: outcome.mismatch.kind,
@@ -121,7 +124,7 @@ export function registerSyncRoutes(app: FastifyInstance, { db, appVersions }: Sy
             changedSeq: seq,
           });
         }
-        results.push({ id: action.id, outcome: outcome.outcome, mismatch: Boolean(outcome.mismatch) });
+        results.push({ id: action.id, outcome: outcome.outcome, mismatch: Boolean(outcome.mismatch || outcome.raisedMismatch) });
       }
       await tx
         .update(devices)
@@ -167,10 +170,15 @@ export function registerSyncRoutes(app: FastifyInstance, { db, appVersions }: Sy
                 payload: actions.payload,
                 correctedTime: actions.correctedTime,
                 outcome: actions.outcome,
+                result: actions.result,
+                reversedByActionId: actions.reversedByActionId,
               })
               .from(actions)
-              .where(gt(actions.seq, since))
+              // Old Actions come again when an Undo or Correction changes them.
+              .where(gt(actions.changedSeq, since))
               .orderBy(actions.seq),
+            // Device names, for "Undone by Kitchen phone" in history. Few rows, so always all.
+            devices: await tx.select({ id: devices.id, name: devices.name }).from(devices),
           },
         };
       },

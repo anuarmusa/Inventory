@@ -37,7 +37,7 @@ export default function UseSome() {
         ms: UNDO_MS,
         onAction: () => {
           void dropUnsent(action.id).then((dropped) =>
-            toast({ text: dropped ? 'Undone.' : 'Already synced: undo it from History.' }),
+            toast({ text: dropped ? 'Undone.' : 'Already synced: undo it from Recent activity.' }),
           );
         },
       });

@@ -60,6 +60,9 @@ export default function Home() {
         <Text style={styles.scanText}>📷 Scan</Text>
       </Pressable>
       <Text style={[ui.mute, { textAlign: 'center' }]}>Scan a product or a Label</Text>
+      <Pressable onPress={() => router.push('/activity')} style={{ alignItems: 'center', padding: 8 }}>
+        <Text style={{ color: colors.accent }}>Recent activity</Text>
+      </Pressable>
     </View>
   );
 }
