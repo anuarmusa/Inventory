@@ -1,4 +1,4 @@
-import { ActionBody } from '@inventory/shared';
+import { type Action, ActionBody } from '@inventory/shared';
 import { randomUUID } from 'expo-crypto';
 import { Redirect, router } from 'expo-router';
 import { useState } from 'react';
@@ -19,10 +19,15 @@ import { formatDate } from '../../scan/dates';
 import { LocationPicker, Stepper } from '../../scan/pickers';
 import { useSession } from '../../session/SessionProvider';
 import { colors, ui } from '../../ui/styles';
+import { useToast } from '../../ui/Toast';
+
+/** How long the Undo toast shows; the sync waits for it, so Undo leaves nothing in history. */
+const UNDO_MS = 6_000;
 
 /** The basket before "Put away": change how many, the Location (the usual one by default), or remove a line. */
 export default function Review() {
-  const { inventory, record } = useSession();
+  const { inventory, record, dropUnsent } = useSession();
+  const toast = useToast();
   const { basket, update, clear } = useBasket();
   const [open, setOpen] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
@@ -35,11 +40,22 @@ export default function Review() {
     try {
       // Check every Action first, so a basket is never half put away.
       const actions = putAway(basket, inventory, randomUUID).map((a) => ActionBody.parse(a));
-      for (const action of actions) await record(action);
+      const recorded: Action[] = [];
+      for (const action of actions) recorded.push(await record(action, { syncDelayMs: UNDO_MS }));
       const n = basket.lines.length;
       clear();
       router.dismissTo('/');
-      Alert.alert('Put away', n === 1 ? '1 line put away.' : `${n} lines put away.`);
+      toast({
+        text: n === 1 ? '1 line put away.' : `${n} lines put away.`,
+        actionLabel: 'Undo',
+        ms: UNDO_MS,
+        onAction: () => {
+          // Still unsent: dropping them leaves nothing in history.
+          void Promise.all([...recorded].reverse().map((a) => dropUnsent(a.id))).then((dropped) =>
+            toast({ text: dropped.every(Boolean) ? 'Undone.' : 'Already synced: undo it from Recent activity.' }),
+          );
+        },
+      });
     } catch (e) {
       Alert.alert('Couldn’t put it away', (e as Error).message);
     } finally {

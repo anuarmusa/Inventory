@@ -216,8 +216,19 @@ export const actions = pgTable(
     receivedAt: timestamp('received_at', { withTimezone: true }).notNull().defaultNow(),
     outcome: actionOutcome('outcome').notNull(),
     result: jsonb('result'),
+    /**
+     * The Undo or Correction that reversed this Action, while it stands. Cleared when that Undo is
+     * itself undone, so the original counts again.
+     */
+    reversedByActionId: uuid('reversed_by_action_id'),
+    /** The `seq` of the last Action that changed this row (itself, or an Undo/Correction of it). */
+    changedSeq: changedSeq(),
   },
-  (t) => [index('actions_device_idx').on(t.deviceId), index('actions_type_idx').on(t.type)],
+  (t) => [
+    index('actions_device_idx').on(t.deviceId),
+    index('actions_type_idx').on(t.type),
+    index('actions_changed_seq_idx').on(t.changedSeq),
+  ],
 );
 
 export const mismatchKind = pgEnum('mismatch_kind', ['shortfall', 'skipped_action', 'double_assignment']);

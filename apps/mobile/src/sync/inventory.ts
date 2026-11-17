@@ -105,6 +105,15 @@ export interface LoggedActionRow {
   payload: Record<string, unknown>;
   correctedTime: string;
   outcome: 'applied' | 'skipped';
+  /** What applying it recorded, e.g. which Batches a "used" took from. */
+  result?: Record<string, unknown> | null;
+  /** The Undo or Correction that reversed it, while that stands. */
+  reversedByActionId?: string | null;
+}
+/** A paired phone, for "Undone by Kitchen phone". */
+export interface DeviceRow {
+  id: string;
+  name: string;
 }
 
 export interface Tables {
@@ -119,6 +128,7 @@ export interface Tables {
   labels: LabelRow;
   mismatches: MismatchRow;
   actions: LoggedActionRow;
+  devices: DeviceRow;
 }
 export type TableName = keyof Tables;
 
@@ -135,6 +145,7 @@ export const TABLE_KEYS: { [T in TableName]: keyof Tables[T] } = {
   labels: 'code',
   mismatches: 'id',
   actions: 'id',
+  devices: 'id',
 };
 export const TABLE_NAMES = Object.keys(TABLE_KEYS) as TableName[];
 
@@ -189,7 +200,7 @@ function take(inv: Inventory, supplyId: string, quantity: number) {
 function lastCountedAt(inv: Inventory, supplyId: string): string | null {
   let latest: string | null = null;
   for (const a of Object.values(inv.actions)) {
-    if (a.type === 'supply.counted' && a.outcome === 'applied' && a.payload.supplyId === supplyId) {
+    if (a.type === 'supply.counted' && a.outcome === 'applied' && !a.reversedByActionId && a.payload.supplyId === supplyId) {
       if (latest === null || a.correctedTime > latest) latest = a.correctedTime;
     }
   }
@@ -396,9 +407,96 @@ function applyLocally(inv: Inventory, action: Action): void {
     }
 
     case 'action.undone':
-    case 'action.corrected':
-      // The server doesn't act on these yet ("Undo and Correction"), so neither does the phone.
+    case 'action.corrected': {
+      // Reverse what the original did, from what the server recorded when it applied it.
+      const target = inv.actions[action.payload.targetActionId];
+      if (!target || target.reversedByActionId || target.outcome !== 'applied') return;
+      const corrected = action.type === 'action.corrected' ? action.payload.corrected : null;
+      const current =
+        target.type === 'action.corrected'
+          ? { ...(target.payload.corrected as { type: string; payload: Record<string, unknown> }), result: (target.result?.applied ?? null) as Result }
+          : { type: target.type, payload: target.payload, result: (target.result ?? null) as Result };
+      if (target.type === 'action.undone') return; // Undoing an Undo: shown once the server has applied it.
+      if (corrected && corrected.type !== current.type) return;
+      if (!countedSinceLocally(inv, target, current)) reverseLocally(inv, current, at);
+      inv.actions[target.id] = { ...target, reversedByActionId: action.id };
+      if (corrected) applyLocally(inv, { ...action, ...corrected } as Action);
       return;
+    }
+  }
+}
+
+type Result = { taken?: { batchId: string; quantity: number }[]; addedBatchId?: string; fromLocationId?: string | null; fromSupplyId?: string } | null;
+
+/** True when the Supply was counted after this Action: undoing it then doesn't change the amount. */
+export function countedSinceLocally(inv: Inventory, target: LoggedActionRow, body: { type: string; payload: Record<string, unknown> }): boolean {
+  if (!['supply.used', 'supply.counted', 'batch.added', 'batch.discarded'].includes(body.type)) return false;
+  const supplyId = (body.payload.supplyId as string | undefined) ?? inv.batches[body.payload.batchId as string]?.supplyId;
+  if (!supplyId) return false;
+  return Object.values(inv.actions).some(
+    (a) =>
+      a.id !== target.id &&
+      a.type === 'supply.counted' &&
+      a.outcome === 'applied' &&
+      !a.reversedByActionId &&
+      a.payload.supplyId === supplyId &&
+      a.correctedTime > target.correctedTime,
+  );
+}
+
+/** The local mirror of the server's reversal (sync/undo.ts), close enough to show the result. */
+function reverseLocally(inv: Inventory, body: { type: string; payload: Record<string, unknown>; result: Result }, at: string) {
+  const p = body.payload as Record<string, string>;
+  const r = body.result ?? {};
+  const putBack = () => {
+    for (const t of r.taken ?? []) {
+      const b = inv.batches[t.batchId];
+      if (b) inv.batches[b.id] = { ...b, quantity: b.quantity + t.quantity };
+    }
+  };
+  const empty = (batchId: string | undefined) => {
+    const b = batchId ? inv.batches[batchId] : undefined;
+    if (b) inv.batches[b.id] = { ...b, quantity: 0 };
+  };
+  const restore = <T extends 'supplies' | 'assets' | 'locations' | 'categories'>(table: T, key: string, change: Partial<Tables[T]>) => {
+    const row = inv[table][key];
+    if (row) (inv[table] as Record<string, unknown>)[key] = { ...row, ...change };
+  };
+  switch (body.type) {
+    case 'supply.used':
+    case 'batch.discarded':
+      return putBack();
+    case 'supply.counted':
+      putBack();
+      return empty(r.addedBatchId);
+    case 'batch.added':
+      return empty(p.batchId);
+    case 'batch.moved': {
+      const b = inv.batches[p.batchId!];
+      if (b) inv.batches[b.id] = { ...b, locationId: r.fromLocationId ?? null };
+      return;
+    }
+    case 'asset.moved':
+      return restore('assets', p.assetId!, { locationId: r.fromLocationId ?? null });
+    case 'asset.disposed':
+      return restore('assets', p.assetId!, { disposedAt: null, disposedReason: null });
+    case 'supply.deleted':
+      return restore('supplies', p.supplyId!, { deletedAt: null });
+    case 'asset.deleted':
+      return restore('assets', p.assetId!, { deletedAt: null });
+    case 'location.deleted':
+      return restore('locations', p.locationId!, { deletedAt: null });
+    case 'category.deleted':
+      return restore('categories', p.categoryId!, { deletedAt: null });
+    case 'supply.created':
+      return restore('supplies', p.supplyId!, { deletedAt: at });
+    case 'asset.created':
+      return restore('assets', p.assetId!, { deletedAt: at });
+    case 'barcode.moved': {
+      const c = inv.barcodes[p.code!];
+      if (c && r.fromSupplyId) inv.barcodes[c.code] = { ...c, supplyId: r.fromSupplyId };
+      return;
+    }
   }
 }
 
