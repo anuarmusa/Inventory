@@ -404,6 +404,14 @@ describe.skipIf(!canRun)('sync', () => {
   // ---------- pull ----------
 
   describe('pull', () => {
+    it('carries the restore epoch, which changes when the database is restored', async () => {
+      const phone = await newDevice();
+      const first = (await pull(phone)).json().epoch;
+      expect(first).toMatch(/^[0-9a-f-]{36}$/);
+      await testDb.client.query('UPDATE household_settings SET epoch = gen_random_uuid()');
+      expect((await pull(phone)).json().epoch).not.toBe(first);
+    });
+
     it('gives a first-time Device everything, including household settings', async () => {
       const phone = await newDevice();
       const { supplyId } = await stocked(phone, [{ quantity: 2, expiry: '2027-01-01' }]);

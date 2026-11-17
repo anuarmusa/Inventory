@@ -112,7 +112,9 @@ export function registerSyncRoutes(app: FastifyInstance, { db, appVersions }: Sy
       .update(devices)
       .set({ lastSyncedAt: new Date(), ...(appVersion ? { appVersion } : {}) })
       .where(eq(devices.id, auth.device.id));
-    return { ...snap, app: appVersions() };
+    // The restore epoch: a new one means the database was restored and the phone must resync fully.
+    const [settings] = await db.select({ epoch: householdSettings.epoch }).from(householdSettings);
+    return { ...snap, epoch: settings?.epoch ?? null, app: appVersions() };
   });
 }
 

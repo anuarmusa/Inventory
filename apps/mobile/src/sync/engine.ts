@@ -101,8 +101,14 @@ export function createSyncEngine({ session, local, api, appVersion, newId, now =
         else if (error.reason === 'invalid_request') problem = 'failed';
         else throw error;
       }
-      const pulled = await api.pull(server, key, await local.lastSeq());
-      await local.commitSync(pulled.changes, accepted, pulled.seq);
+      let pulled = await api.pull(server, key, await local.lastSeq());
+      // A new epoch: the server was restored from a backup and its sequence numbers rewound.
+      // Forget what was pulled and take everything again; Unsent Actions stay.
+      const known = await session.get(KEYS.serverEpoch);
+      const restored = Boolean(known && pulled.epoch && pulled.epoch !== known);
+      if (restored) pulled = await api.pull(server, key, 0);
+      await local.commitSync(pulled.changes, accepted, pulled.seq, { reset: restored });
+      if (pulled.epoch) await session.set(KEYS.serverEpoch, pulled.epoch);
       setState({ home: true, problem, lastSyncedAt: now().toISOString(), app: pulled.app ?? state.app });
       if (pulled.app) await session.set(KEYS.appVersions, JSON.stringify(pulled.app));
       return 'synced';

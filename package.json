@@ -9,10 +9,12 @@
   "scripts": {
     "dev": "pnpm --parallel --filter @inventory/server --filter @inventory/web dev",
     "build": "pnpm -r build",
-    "test": "pnpm -r test",
+    "test": "pnpm -r test && vitest run scripts",
     "typecheck": "pnpm -r typecheck",
     "db:up": "docker compose up -d db",
-    "db:migrate": "pnpm --filter @inventory/server db:migrate"
+    "db:migrate": "pnpm --filter @inventory/server db:migrate",
+    "deploy": "node scripts/deploy.mjs",
+    "backups:pull": "node scripts/pull-backups.mjs"
   },
   "devDependencies": {
     "@types/node": "^24.19.2",

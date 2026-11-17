@@ -65,8 +65,9 @@ export const phoneLocal: LocalStore = {
     }
   },
 
-  async commitSync(changes, acceptedIds, seq) {
+  async commitSync(changes, acceptedIds, seq, options) {
     db.transaction((tx) => {
+      if (options?.reset) tx.delete(serverRows).run();
       for (const table of TABLE_NAMES as TableName[]) {
         const values = (changes[table] ?? []).map((row) => ({
           tableName: table,

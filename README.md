@@ -55,3 +55,14 @@ Release builds are signed with the debug key until the household's release key i
 On Windows, run Expo commands from a path with an uppercase drive letter (`E:\…`, not `e:\…`): Metro and Expo Router build broken paths otherwise ("None of these files exist: …\_layout.tsx"). `build:apk` corrects this itself.
 
 Local database changes: edit `apps/mobile/src/db/schema.ts`, then `pnpm --filter @inventory/mobile db:generate`.
+
+## Deploying and operating
+
+The home server runs `compose.yaml` from `/srv/inventory`, with its `.env` (database password, `TZ`, `APP_VERSION`). Everything it keeps lives there: `db/`, `photos/`, `apk/` and `backups/`. First-time setup is a step-by-step wizard (see "First server setup").
+
+- **Deploy** from the dev PC: `pnpm run deploy`. It bumps the version, asks for a one-line "what's new", builds the APK and the image, copies them over SSH (`DEPLOY_HOST` in `.env`), and starts the new version. Commit the version bump afterwards. `pnpm run deploy -- --dry-run --notes "…"` prints the steps without running them.
+- **On start** the app takes a backup, applies pending migrations, then serves. If a migration fails, the container stops and leaves `MIGRATION_FAILED`.
+- **Backups** run nightly at 03:00 inside the app: `pg_dump` plus the photos, kept 14 days, copied to the USB drive (it needs the `.inventory-backups` marker file). The dashboard footer shows the last result. `pnpm run backups:pull` copies them to this PC.
+- **Restore** on the server: `scripts/restore.sh <backup folder>`. It replaces the database and photos, and phones sync everything again.
+- **Roll back** on the server: `scripts/rollback.sh`. It starts the previous image, first restoring the pre-migration backup if the current version changed the database.
+- **On the dev PC**, `compose.override.yaml` is merged in automatically: `docker compose up -d --build` builds from source and serves on http://localhost:8080 with Docker volumes and no USB drive.

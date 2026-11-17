@@ -93,6 +93,28 @@ describe('syncing', () => {
     }
   });
 
+  it('syncs everything again after the server was restored from a backup, keeping Unsent Actions', async () => {
+    const { engine, server, local, store } = readyPhone();
+    server.rows = { supplies: [{ id: SUPPLY, name: 'Jasmine rice' } as SupplyRow] };
+    await engine.sync();
+    expect(store.data[KEYS.serverEpoch]).toBe('epoch-1');
+
+    // Restored: the rice is gone from the server, sequence numbers rewound.
+    server.epoch = 'epoch-2';
+    server.seq = 3;
+    server.rows = {};
+    server.pushError = new ApiError('unreachable', 'offline');
+    await engine.record(used(1));
+    await settle();
+    server.pushError = undefined;
+    server.pushes.length = 0;
+    await engine.sync();
+    expect(server.pulls.slice(-2).map((p) => p.since)).toEqual([10, 0]);
+    expect((await local.serverState()).supplies[SUPPLY]).toBeUndefined();
+    expect(await local.lastSeq()).toBe(4);
+    expect(server.pushes).toHaveLength(1);
+  });
+
   it('pulls only what changed since the last sync', async () => {
     const { engine, server } = readyPhone();
     await engine.sync();

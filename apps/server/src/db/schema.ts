@@ -36,6 +36,11 @@ export const householdSettings = pgTable(
     changedSeq: changedSeq(),
     id: integer('id').primaryKey().default(1),
     nearExpiryDays: integer('near_expiry_days').notNull().default(7),
+    /**
+     * Changes whenever the database is restored from a backup (scripts/restore.sh). Phones that see
+     * a new epoch drop what they pulled and sync everything again, since sequence numbers rewound.
+     */
+    epoch: uuid('epoch').notNull().defaultRandom(),
   },
   (t) => [check('household_settings_single_row', sql`${t.id} = 1`)],
 );

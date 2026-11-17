@@ -21,8 +21,9 @@ export interface LocalStore {
   /**
    * Stores one sync's result in one step: the pulled rows, the new sequence number, and drops the
    * Actions the server took. If the phone dies part way, nothing is lost: pushes are safe to repeat.
+   * `reset` first forgets every pulled row (after the server was restored from a backup).
    */
-  commitSync(changes: PulledChanges, acceptedIds: readonly string[], seq: number): Promise<void>;
+  commitSync(changes: PulledChanges, acceptedIds: readonly string[], seq: number, options?: { reset?: boolean }): Promise<void>;
 }
 
 /**
@@ -54,7 +55,8 @@ export function memoryLocal(meta?: SessionStore): LocalStore & { unsent: Action[
     reassignUnsent: async (deviceId: string) => {
       local.unsent = local.unsent.map((a) => ({ ...a, deviceId }));
     },
-    commitSync: async (changes: PulledChanges, acceptedIds: readonly string[], newSeq: number) => {
+    commitSync: async (changes: PulledChanges, acceptedIds: readonly string[], newSeq: number, options?: { reset?: boolean }) => {
+      if (options?.reset) local.rows = {};
       const inv = inventoryFrom(local.rows);
       for (const table of TABLE_NAMES) {
         for (const row of changes[table] ?? []) (inv[table] as Record<string, unknown>)[rowKey(table, row as never)] = row;

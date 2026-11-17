@@ -3,6 +3,7 @@ import { resolve } from 'node:path';
 import { buildApp } from './app.ts';
 import { createDb } from './db/client.ts';
 import { loadDevEnv } from './env.ts';
+import { scheduleNightlyBackup } from './ops/nightly.ts';
 
 loadDevEnv();
 
@@ -40,3 +41,6 @@ const app = buildApp({
   publicAddress: process.env.PUBLIC_ADDRESS || undefined,
 });
 await app.listen({ host: '0.0.0.0', port });
+
+// Nightly backup at 03:00 (in the image; BACKUP_SCRIPT is unset on the dev PC).
+scheduleNightlyBackup(process.env.BACKUP_SCRIPT, (msg) => app.log.info(msg));

@@ -120,3 +120,15 @@ Decisions made while building v1 ([`docs/spec/v1.md`](spec/v1.md)) that the spec
 - **Reprint** prints the same code and records nothing. **Replace** records `label.replaced` (a new code on the same thing; the old one is retired).
 - **Print dialog**: a number box and a clickable sheet map. Positions before the start are greyed (already used), and this job's labels are filled.
 - **Print entry points** are all on the new Labels page: the list there covers every Asset and Location. The dashboard has no Asset or Location detail page in v1.
+
+## Deployment tooling (#38)
+
+- **One `compose.yaml` for production, with the dev settings in `compose.override.yaml`**: Compose merges the override automatically on the dev PC, and the deploy script copies only `compose.yaml` to the server. The override replaces ports and volumes (`!override`), so dev doesn't also publish port 80.
+- **Paths are settings with production defaults** (`DATA_DIR=/srv/inventory`, `BACKUP_USB_DIR=/mnt/inventory-usb`, `HTTP_PORT=80`). This also let the server tooling be tested on the dev PC in a scratch folder.
+- **The app image carries the PostgreSQL 17 client** (from the PostgreSQL apt repository; `pg_dump` must be at least the server's version), so backups run inside the app container.
+- **The nightly 03:00 backup is a timer in the app**, not host cron: nothing to set up on the server, and it uses the container's `TZ`.
+- **The USB copy needs a marker file** (`.inventory-backups`, put there by the setup wizard). Without it the drive is treated as not mounted: the local backup is still made, and the dashboard footer shows "USB drive not mounted" in red.
+- **Start**: wait for the database, back up as `start-<version>`, migrate, serve. When migrations change the schema, `backups/migrated-<version>.json` records the backup to roll back to. A failed migration writes `MIGRATION_FAILED` and exits, and later restarts stop straight away instead of looping through backups. Rollback clears it.
+- **Restore replaces the whole database** (drop, create, `pg_restore`), so tables a newer version added don't linger. It then sets a new **restore epoch**: every pull carries it, and a phone that sees a new one forgets what it pulled and takes everything again, keeping its Unsent Actions. Without this, phones would keep rows the restored server no longer has, because sequence numbers rewind.
+- **Versions**: deploy bumps the patch version (or `--version`) and the Android version code, and sets the same version on the app, the mobile package and the server package (shown in the footer). The server's `.env` keeps `APP_VERSION` and `PREVIOUS_APP_VERSION`. The last two images and APKs are kept.
+- **Deploy needs `DEPLOY_HOST`** in the dev PC's `.env` and uses the built-in OpenSSH `ssh`/`scp` (key from the setup wizard). It doesn't commit the version bump; it reminds you to.
