@@ -51,9 +51,9 @@ export function ListScreen({ title, empty, children }: { title: string; empty: s
 }
 
 /** One row of a list: the thing on the left, a badge on the right. */
-export function ListRow({ title, detail, badge }: { title: string; detail?: string | null; badge: string }) {
+export function ListRow({ title, detail, badge, href }: { title: string; detail?: string | null; badge: string; href?: Href }) {
   return (
-    <View style={styles.row}>
+    <Pressable style={styles.row} disabled={!href} onPress={() => href && router.push(href)} accessibilityRole={href ? 'link' : undefined}>
       <View style={{ flex: 1 }}>
         <Text style={ui.body}>{title}</Text>
         {detail ? <Text style={ui.mute}>{detail}</Text> : null}
@@ -61,7 +61,7 @@ export function ListRow({ title, detail, badge }: { title: string; detail?: stri
       <View style={styles.badge}>
         <Text style={styles.badgeText}>{badge}</Text>
       </View>
-    </View>
+    </Pressable>
   );
 }
 

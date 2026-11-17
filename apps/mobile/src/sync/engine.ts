@@ -42,8 +42,11 @@ export interface SyncDeps {
 
 export interface SyncEngine {
   sync(): Promise<SyncResult>;
-  /** Records an Action as unsent, then syncs in the background. */
-  record(body: ActionBody): Promise<Action>;
+  /**
+   * Records an Action as unsent, then syncs in the background. `syncDelayMs` holds that sync back,
+   * e.g. while an Undo toast is showing, so Undo can simply drop the Action.
+   */
+  record(body: ActionBody, options?: { syncDelayMs?: number }): Promise<Action>;
   /** Changes an Unsent Action. False when it has already synced. */
   editUnsent(id: string, body: ActionBody): Promise<boolean>;
   /** Drops an Unsent Action; nothing of it reaches history. False when it has already synced. */
@@ -132,13 +135,15 @@ export function createSyncEngine({ session, local, api, appVersion, newId, now =
 
   return {
     sync,
-    async record(body) {
+    async record(body, { syncDelayMs = 0 } = {}) {
       const deviceId = await session.get(KEYS.deviceId);
       if (!deviceId) throw new Error('This phone isn’t connected to the home server yet.');
       const action = Action.parse({ id: newId(), deviceId, deviceTime: now().toISOString(), v: 1, ...body });
       await local.addUnsent(action);
       changed();
-      void sync().catch(() => undefined);
+      const later = () => void sync().catch(() => undefined);
+      if (syncDelayMs > 0) setTimeout(later, syncDelayMs);
+      else later();
       return action;
     },
     editUnsent: (id, body) =>

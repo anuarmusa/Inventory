@@ -38,7 +38,7 @@ export default function Review() {
       for (const action of actions) await record(action);
       const n = basket.lines.length;
       clear();
-      router.dismissAll();
+      router.dismissTo('/');
       Alert.alert('Put away', n === 1 ? '1 line put away.' : `${n} lines put away.`);
     } catch (e) {
       Alert.alert('Couldn’t put it away', (e as Error).message);

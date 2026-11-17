@@ -70,6 +70,22 @@ describe('syncing', () => {
     expect(server.received).toHaveLength(1);
   });
 
+  it('can hold the sync after an Action back, so an Undo toast can drop it', async () => {
+    jest.useFakeTimers();
+    try {
+      const { engine, server, local } = readyPhone();
+      const action = await engine.record(used(1), { syncDelayMs: 5_000 });
+      await jest.advanceTimersByTimeAsync(4_000);
+      expect(server.pushes).toEqual([]);
+      expect(await engine.dropUnsent(action.id)).toBe(true);
+      await jest.advanceTimersByTimeAsync(2_000);
+      expect(server.received).toEqual([]);
+      expect(local.unsent).toEqual([]);
+    } finally {
+      jest.useRealTimers();
+    }
+  });
+
   it('pulls only what changed since the last sync', async () => {
     const { engine, server } = readyPhone();
     await engine.sync();
