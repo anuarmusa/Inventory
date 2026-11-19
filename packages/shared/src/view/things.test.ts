@@ -12,7 +12,9 @@ import {
   saveAsset,
   saveSupply,
   supplyForm,
+  supplyNameFrom,
   supplyProblems,
+  unitProblem,
 } from './things.ts';
 
 const PANTRY = '22222222-2222-4222-8222-222222222222';
@@ -91,7 +93,21 @@ describe('forms', () => {
   });
 
   it('says what stops a Supply being saved', () => {
-    expect(supplyProblems({ ...supplyForm(), name: '', unit: '' })).toEqual(['Give it a name.', 'Say what it’s counted in.']);
+    expect(supplyProblems({ ...supplyForm(), name: '', unit: '' })).toEqual(['Give it a name.', 'Say what it’s counted in, like cans or packs.']);
+  });
+
+  it('refuses a number as the unit: prices and weights don’t go there', () => {
+    expect(unitProblem('5.70')).toMatch(/not a number/);
+    expect(unitProblem('RM 5')).toBeNull();
+    expect(unitProblem('cans')).toBeNull();
+    expect(supplyProblems({ ...supplyForm(), name: 'Mushroom soup', unit: '5.70' })).toHaveLength(1);
+  });
+
+  it('suggests a Supply name from the product name, without the pack size', () => {
+    expect(supplyNameFrom('Campbell mushroom soup')).toBe('Campbell mushroom soup');
+    expect(supplyNameFrom('Kuih bangkit 300g')).toBe('Kuih bangkit');
+    expect(supplyNameFrom('Milo 1.5 kg tin')).toBe('Milo tin');
+    expect(supplyNameFrom(null)).toBe('');
   });
 
   it('reads and shows ringgit', () => {

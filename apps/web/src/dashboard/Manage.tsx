@@ -136,10 +136,11 @@ function SupplyEditor({ household, existing, onDone }: { household: Household; e
     <form className="card editor" onSubmit={submit}>
       <h2>{existing ? `Edit ${existing.name}` : 'New Supply'}</h2>
       <label>
-        Name <input value={form.name} onChange={(e) => set('name', e.target.value)} placeholder="e.g. Jasmine rice" />
+        Item name: what you call it at home, any brand{' '}
+        <input value={form.name} onChange={(e) => set('name', e.target.value)} placeholder="e.g. Jasmine rice" />
       </label>
       <label>
-        Counted in <input value={form.unit} onChange={(e) => set('unit', e.target.value)} />
+        Counted in (cans, packs, bottles…) <input value={form.unit} onChange={(e) => set('unit', e.target.value)} />
       </label>
       <label>
         Category <Select value={form.categoryId} options={liveCategories(inventory)} onChange={(v) => set('categoryId', v)} none="None" />

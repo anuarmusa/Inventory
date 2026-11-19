@@ -1,7 +1,7 @@
 import { randomUUID } from 'expo-crypto';
 import { useMemo, useState } from 'react';
 import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
-import type { Inventory } from '@inventory/shared';
+import { COMMON_UNITS, type Inventory, unitProblem } from '@inventory/shared';
 import { colors, ui } from '../ui/styles';
 import type { Basket, SupplyChoice } from './basket';
 
@@ -80,7 +80,7 @@ export function SupplyPicker({
   const chosenId = value && 'supplyId' in value ? value.supplyId : null;
   const makeNew = (n = name, u = unit, e = expires) =>
     onChange(
-      n.trim() && u.trim()
+      n.trim() && !unitProblem(u)
         ? {
             newSupply: {
               supplyId: newId,
@@ -95,26 +95,44 @@ export function SupplyPicker({
   if (making) {
     return (
       <View style={{ gap: 8 }}>
-        <Text style={ui.label}>New Supply: the general thing, any brand</Text>
+        <Text style={ui.label}>Item name</Text>
         <TextInput
           style={ui.input}
           value={name}
-          placeholder="e.g. Jasmine rice"
+          placeholder="e.g. Mushroom soup"
           onChangeText={(t) => {
             setName(t);
             makeNew(t);
           }}
         />
+        <Text style={ui.mute}>
+          What you call it at home, any brand: every brand of it shares this name. The name on the pack stays with the barcode.
+        </Text>
         <Text style={ui.label}>Counted in</Text>
+        <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6 }}>
+          {COMMON_UNITS.map((u) => (
+            <Pressable
+              key={u}
+              style={[styles.chip, unit === u && styles.chipOn]}
+              onPress={() => {
+                setUnit(u);
+                makeNew(name, u);
+              }}
+            >
+              <Text style={{ color: unit === u ? '#fff' : colors.ink }}>{u}</Text>
+            </Pressable>
+          ))}
+        </View>
         <TextInput
           style={ui.input}
-          value={unit}
-          placeholder="packs, bottles, rolls…"
+          value={COMMON_UNITS.includes(unit) ? '' : unit}
+          placeholder="or type another, e.g. tubs"
           onChangeText={(t) => {
             setUnit(t);
             makeNew(name, t);
           }}
         />
+        {unitProblem(unit) && <Text style={{ color: colors.bad }}>{unitProblem(unit)}</Text>}
         <Text style={ui.label}>Does it expire?</Text>
         <Toggle
           value={expires}
@@ -156,7 +174,8 @@ export function SupplyPicker({
           style={ui.secondary}
           onPress={() => {
             setMaking(true);
-            const n = search.trim() || suggestion;
+            // Start from the product's name: search text is often something else (a shop, a brand).
+            const n = suggestion.trim() || search.trim();
             setName(n);
             makeNew(n);
           }}

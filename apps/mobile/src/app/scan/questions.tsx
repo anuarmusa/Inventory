@@ -2,7 +2,7 @@ import type { CalendarDate } from '@inventory/shared';
 import { Redirect, router } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
-import { localToday } from '@inventory/shared';
+import { localToday, supplyNameFrom } from '@inventory/shared';
 import {
   answerExpiry,
   answerNewProduct,
@@ -92,7 +92,7 @@ function NewProductQuestion({ line }: { line: Line }) {
       <Text style={ui.label}>Name on the pack</Text>
       <TextInput style={ui.input} value={productName} onChangeText={setProductName} placeholder="e.g. Kuih bangkit 300g" />
       <Text style={ui.label}>Which Supply is it?</Text>
-      <SupplyPicker inventory={inventory} basket={basket} suggestion={found?.productName ?? productName} value={choice} onChange={setChoice} />
+      <SupplyPicker inventory={inventory} basket={basket} suggestion={supplyNameFrom(found?.productName ?? productName)} value={choice} onChange={setChoice} />
       <Text style={ui.label}>One scan of this barcode adds</Text>
       <Stepper value={unitsPerScan} unit={unit ?? 'units'} onChange={setUnitsPerScan} />
       <Pressable style={[ui.primary, !choice && { opacity: 0.4 }]} disabled={!choice} onPress={save}>
