@@ -145,3 +145,12 @@ Decisions made while building v1 ([`docs/spec/v1.md`](spec/v1.md)) that the spec
 - **`pnpm run deploy` refuses a debug-signed APK** (`--require-release-key`): one on the phones would force an uninstall once the real key arrives. A plain `pnpm build:apk` still falls back to the debug key, for trying things out.
 - **The off-server copy of the key** goes into the dev PC's pulled-backups folder, with a reminder to keep that folder off the PC too.
 - **The Windows Firewall rule** ("Inventory dev": TCP 3000, 5173 and 8080, private networks only) is added through an elevated PowerShell prompt.
+
+## Clearer New Supply naming (after the first trial)
+
+The first trial produced a Supply named "Gaint" (a shop's name) counted in "5.70" (a price), for a can of Campbell mushroom soup.
+
+- **A new Supply's name starts from the product's name**, without its pack size ("Kuih bangkit 300g" → "Kuih bangkit"), instead of whatever was typed in the Supply search box.
+- **The field is labelled "Item name"**, with the hint "What you call it at home, any brand… The name on the pack stays with the barcode." "Supply" stays the term everywhere else.
+- **Counted in** offers one-tap units (pieces, packs, bottles, cans, boxes, bags, rolls, sachets), with a box for any other word.
+- **A unit must contain a letter**: "5.70" is refused with "not a number (prices and weights don't go here)". This applies on the phone and on the dashboard; the shared `supplyProblems` enforces it.

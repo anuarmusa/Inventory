@@ -144,10 +144,34 @@ export function saveAsset(existing: AssetRow | undefined, form: AssetForm, newId
 }
 
 /** Problems that stop a form being saved, in the household's words. */
+/** Units offered as one-tap choices; any other word can be typed. Supplies count whole units. */
+export const COMMON_UNITS = ['pieces', 'packs', 'bottles', 'cans', 'boxes', 'bags', 'rolls', 'sachets'];
+
+/** What's wrong with a unit, or null: it must be a word (cans, packs), not a number like a price or weight. */
+export function unitProblem(unit: string): string | null {
+  if (!unit.trim()) return 'Say what it’s counted in, like cans or packs.';
+  if (!/\p{L}/u.test(unit)) return 'Counted in is a word like cans or packs, not a number (prices and weights don’t go here).';
+  return null;
+}
+
+/**
+ * A Supply name suggested from a product's name: the product name without its pack size
+ * ("Kuih bangkit 300g" → "Kuih bangkit"). The full name on the pack stays on the Barcode.
+ */
+const PACK_SIZE = /\b\d+([.,]\d+)?\s*(g|gm|kg|ml|l|ltr|cl|oz|lb|pcs|pc|x)\b/gi;
+
+export function supplyNameFrom(productName: string | null | undefined): string {
+  return (productName ?? '')
+    .replace(PACK_SIZE, '')
+    .replace(/\s{2,}/g, ' ')
+    .trim();
+}
+
 export function supplyProblems(form: SupplyForm): string[] {
   const out: string[] = [];
   if (!form.name.trim()) out.push('Give it a name.');
-  if (!form.unit.trim()) out.push('Say what it’s counted in.');
+  const unit = unitProblem(form.unit);
+  if (unit) out.push(unit);
   if (form.restockTo !== null && form.restockTo < 1) out.push('Restock-to must be at least 1.');
   return out;
 }
