@@ -122,7 +122,7 @@ describe('the dashboard', () => {
   it('shows Needs checking only when Mismatches are open, and fixes them with Actions', async () => {
     const { api, recorded } = fakeApi(household());
     render(<Show api={api} />);
-    const card = (await screen.findByRole('heading', { name: '⚠️ Needs checking (1)' })).closest('section')!;
+    const card = (await screen.findByRole('heading', { name: 'Needs checking (1)' })).closest('section')!;
     expect(within(card).getByText(/used 3 packs of Jasmine rice, but only 1 was on hand/)).toBeTruthy();
     fireEvent.click(within(card).getByRole('button', { name: 'Accept' }));
     await waitFor(() => expect(recorded).toEqual([[{ type: 'mismatch.resolved', payload: { mismatchId: MISMATCH, resolution: 'accepted' } }]]));
@@ -147,7 +147,7 @@ describe('the dashboard', () => {
     render(<Show api={api} />);
     const sidebar = (await screen.findByRole('heading', { name: 'Recent activity' })).closest('aside')!;
     expect(within(sidebar).getByText('Used 3 packs of Jasmine rice')).toBeTruthy();
-    expect(within(sidebar).getByText('Kitchen phone')).toBeTruthy();
+    expect(within(sidebar).getByText(/^Kitchen phone ·/)).toBeTruthy();
     fireEvent.click(within(sidebar).getByRole('button', { name: 'Undo' }));
     await waitFor(() => expect(recorded).toEqual([[{ type: 'action.undone', payload: { targetActionId: USED } }]]));
   });

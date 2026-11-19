@@ -11,6 +11,8 @@ export default function NearExpiry() {
     <ListScreen title="Near expiry" empty="Nothing is near expiry.">
       {items.map(({ batch, supply, locationName, daysLeft }) => (
         <ListRow
+          icon="hourglass-outline"
+          tone="bad"
           key={batch.id}
           title={`${supply.name} · ${batch.quantity} ${supply.unit}`}
           detail={locationName}

@@ -36,7 +36,7 @@ export default function EditSupply() {
     ]);
 
   return (
-    <ScrollView style={{ backgroundColor: '#fff' }} contentContainerStyle={[ui.screen, { paddingTop: 16 }]} keyboardShouldPersistTaps="handled">
+    <ScrollView style={{ backgroundColor: '#f3f6fa' }} contentContainerStyle={[ui.screen, { paddingTop: 16 }]} keyboardShouldPersistTaps="handled">
       <Stack.Screen options={{ headerShown: true, title: existing ? `Edit ${existing.name}` : 'New Supply' }} />
       <TextField label="Name: the general thing, any brand" value={form.name} onChange={(v) => set('name', v)} placeholder="e.g. Jasmine rice" />
       <TextField label="Counted in" value={form.unit} onChange={(v) => set('unit', v)} placeholder="packs, bottles, rolls…" />

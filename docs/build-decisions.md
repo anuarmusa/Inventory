@@ -154,3 +154,23 @@ The first trial produced a Supply named "Gaint" (a shop's name) counted in "5.70
 - **The field is labelled "Item name"**, with the hint "What you call it at home, any brand… The name on the pack stays with the barcode." "Supply" stays the term everywhere else.
 - **Counted in** offers one-tap units (pieces, packs, bottles, cans, boxes, bags, rolls, sachets), with a box for any other word.
 - **A unit must contain a letter**: "5.70" is refused with "not a number (prices and weights don't go here)". This applies on the phone and on the dashboard; the shared `supplyProblems` enforces it.
+
+## A brighter, more polished look (after the first trial)
+
+The first trial found the app and the dashboard plain, and the big Scan button on Home not pulling its weight.
+
+- **One palette** for both: brand teal (`#0e8a6a` → `#14b08a`), with amber for Low stock, rose for Near expiry, blue for To buy and purple for Assets. Pages use a soft grey background (`#f3f6fa`) with white rounded cards and gentle shadows.
+- **App**:
+  - A bottom tab bar (Home, Supplies, Assets, Activity, Settings) with Ionicons (`@expo/vector-icons`).
+  - Home has a gradient header with a greeting, the sync status as a pill (tap to sync, long-press for unsent changes), and a round camera button. The big Scan block is gone, but **scanning stays**: it's how products are added and used, and the camera button opens it.
+  - Home's tiles are colourful with icons, followed by a "Your household" summary and the last three Actions.
+  - Lists are cards with an icon and a coloured pill, the Connect screen has a brand mark, and the gradient comes from `expo-linear-gradient`.
+- **Dashboard**:
+  - A gradient sidebar with icons (`lucide-react`) and a greeting.
+  - Four summary cards: To buy, Low stock, Near expiry and Asset value.
+  - An icon on each card heading; Recent activity with the device and time on one line.
+  - Gradient primary buttons and pill buttons for Undo and Edit.
+  - On narrow screens the sidebar becomes a top bar.
+  - The download page gets a gradient header and card steps.
+- **The dashboard's own Device is no longer listed under "Phones connected"**, which had offered to remove it.
+- **New native module** (`expo-linear-gradient`), so the next APK build is needed to see the app's new look.

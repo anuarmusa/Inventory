@@ -172,3 +172,37 @@ tr.removed td {
   background: var(--warn-soft);
   color: var(--warn);
 }
+
+.dl-hero {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 22px;
+  margin-bottom: 18px;
+  border-radius: 20px;
+  color: #fff;
+  background: linear-gradient(135deg, #0b6f56, #14b08a);
+  box-shadow: 0 8px 24px rgba(14, 138, 106, 0.25);
+}
+.dl-hero h1 {
+  margin: 0;
+  color: #fff;
+}
+.dl-hero p {
+  margin: 2px 0 0;
+  opacity: 0.9;
+}
+.dl-mark {
+  width: 52px;
+  height: 52px;
+  flex: none;
+  border-radius: 16px;
+  display: grid;
+  place-items: center;
+  background: rgba(255, 255, 255, 0.2);
+}
+.dl .step {
+  background: var(--page);
+  box-shadow: var(--shadow);
+  border: 0;
+}

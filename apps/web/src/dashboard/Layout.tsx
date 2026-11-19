@@ -1,31 +1,43 @@
+import { House, LayoutDashboard, type LucideIcon, MapPin, Package, QrCode, Smartphone, Tv } from 'lucide-react';
 import { type ReactNode, useEffect, useState } from 'react';
 import type { BackupStatus } from '@inventory/shared';
 import { dashboardApi } from './household.ts';
 import './dashboard.css';
 
-const PAGES: [string, string][] = [
-  ['/', 'Overview'],
-  ['/supplies', 'Supplies'],
-  ['/assets', 'Assets'],
-  ['/places', 'Locations & Categories'],
-  ['/labels', 'Labels'],
-  ['/app', 'Get the app'],
+const PAGES: [string, string, LucideIcon][] = [
+  ['/', 'Overview', LayoutDashboard],
+  ['/supplies', 'Supplies', Package],
+  ['/assets', 'Assets', Tv],
+  ['/places', 'Locations & Categories', MapPin],
+  ['/labels', 'Labels', QrCode],
+  ['/app', 'Get the app', Smartphone],
 ];
 
-/** Every dashboard page: navigation on top, the footer at the bottom. */
+/** Every dashboard page: the sidebar with the brand and pages, the page, and the footer. */
 export function Layout({ path, children }: { path: string; children: ReactNode }) {
   return (
     <div className="dash">
-      <nav className="nav">
-        <b>Our home</b>
-        {PAGES.map(([href, label]) => (
-          <a key={href} href={href} className={path === href ? 'on' : undefined}>
-            {label}
+      <nav className="nav" aria-label="Pages">
+        <a className="brand" href="/">
+          <span className="brand-mark">
+            <House size={20} />
+          </span>
+          <span>
+            <b>Our home</b>
+            <small>Household inventory</small>
+          </span>
+        </a>
+        {PAGES.map(([href, label, Icon]) => (
+          <a key={href} href={href} className={path === href ? 'on' : undefined} aria-current={path === href ? 'page' : undefined}>
+            <Icon size={18} />
+            <span>{label}</span>
           </a>
         ))}
       </nav>
-      {children}
-      <Footer />
+      <div className="content">
+        {children}
+        <Footer />
+      </div>
     </div>
   );
 }

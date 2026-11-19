@@ -5,7 +5,7 @@ import { ListScreen } from '../home/parts';
 import { KEYS } from '../session/session';
 import { useSession } from '../session/SessionProvider';
 import { phoneStore } from '../session/store';
-import { colors, ui } from '../ui/styles';
+import { colors, shadow, ui } from '../ui/styles';
 
 /** To buy: the Shopping list, a tick-off checklist with the amount to buy. Ticks stay on this phone. */
 export default function ShoppingList() {
@@ -57,9 +57,9 @@ export default function ShoppingList() {
 }
 
 const styles = StyleSheet.create({
-  row: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: colors.line },
-  box: { width: 26, height: 26, borderRadius: 6, borderWidth: 2, borderColor: colors.line, alignItems: 'center', justifyContent: 'center' },
-  boxDone: { backgroundColor: colors.accent, borderColor: colors.accent },
+  row: { flexDirection: 'row', alignItems: 'center', gap: 14, backgroundColor: colors.card, borderRadius: 16, padding: 14, marginBottom: 10, ...shadow },
+  box: { width: 28, height: 28, borderRadius: 9, borderWidth: 2, borderColor: colors.blue, alignItems: 'center', justifyContent: 'center' },
+  boxDone: { backgroundColor: colors.blue, borderColor: colors.blue },
   tick: { color: '#fff', fontWeight: '700' },
   doneText: { textDecorationLine: 'line-through', color: colors.mute },
 });

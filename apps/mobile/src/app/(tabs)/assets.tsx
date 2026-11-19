@@ -1,10 +1,11 @@
-import { router, Stack } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons';
+import { router } from 'expo-router';
 import { useMemo, useState } from 'react';
 import { Pressable, ScrollView, Text, TextInput } from 'react-native';
-import { ListRow } from '../home/parts';
-import { useSession } from '../session/SessionProvider';
+import { ListRow } from '../../home/parts';
+import { useSession } from '../../session/SessionProvider';
 import { assetList } from '@inventory/shared';
-import { ui } from '../ui/styles';
+import { ui } from '../../ui/styles';
 
 /** Every Asset, owned ones first. Asset value isn't shown on the phone (spec §6.1). */
 export default function Assets() {
@@ -12,15 +13,17 @@ export default function Assets() {
   const [search, setSearch] = useState('');
   const items = useMemo(() => assetList(inventory, search), [inventory, search]);
   return (
-    <ScrollView style={{ backgroundColor: '#fff' }} contentContainerStyle={[ui.screen, { paddingTop: 16 }]} keyboardShouldPersistTaps="handled">
-      <Stack.Screen options={{ headerShown: true, title: 'Assets' }} />
+    <ScrollView style={{ backgroundColor: '#f3f6fa' }} contentContainerStyle={[ui.screen, { paddingTop: 16 }]} keyboardShouldPersistTaps="handled">
       <TextInput style={ui.input} value={search} onChangeText={setSearch} placeholder="Search Assets" />
-      <Pressable style={ui.secondary} onPress={() => router.push('/asset/edit')}>
-        <Text style={ui.secondaryText}>+ New Asset</Text>
+      <Pressable style={[ui.primary, { flexDirection: 'row', justifyContent: 'center', gap: 8 }]} onPress={() => router.push('/asset/edit')}>
+        <Ionicons name="add-circle" size={20} color="#fff" />
+        <Text style={ui.primaryText}>New Asset</Text>
       </Pressable>
       {items.length === 0 && <Text style={ui.mute}>{search ? 'No Asset matches.' : 'No Assets yet.'}</Text>}
       {items.map((a) => (
         <ListRow
+          icon="tv-outline"
+          tone={a.disposedAt ? 'mute' : 'ok'}
           key={a.id}
           title={a.name}
           detail={a.locationId ? inventory.locations[a.locationId]?.name : null}

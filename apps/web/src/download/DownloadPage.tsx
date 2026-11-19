@@ -1,3 +1,4 @@
+import { House } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
 import type { AppRelease, DeviceSummary, PairingOffer } from '@inventory/shared';
 import { type DownloadApi, serverApi } from './api';
@@ -51,8 +52,15 @@ export function DownloadPage({ api = serverApi, now = () => new Date() }: Downlo
 
   return (
     <main className="dl">
-      <h1>Get the Inventory app</h1>
-      <p className="mute">For Android phones on our home Wi-Fi.</p>
+      <header className="dl-hero">
+        <span className="dl-mark">
+          <House size={26} />
+        </span>
+        <div>
+          <h1>Get the Inventory app</h1>
+          <p>For Android phones on our home Wi-Fi.</p>
+        </div>
+      </header>
       {error && <p className="note bad">{error}</p>}
 
       <ol className="steps">
