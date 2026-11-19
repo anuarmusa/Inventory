@@ -29,7 +29,7 @@ export default function LocationPage() {
     );
   }
   return (
-    <ScrollView style={{ backgroundColor: '#fff' }} contentContainerStyle={[ui.screen, { paddingTop: 16 }]}>
+    <ScrollView style={{ backgroundColor: '#f3f6fa' }} contentContainerStyle={[ui.screen, { paddingTop: 16 }]}>
       <Stack.Screen options={{ headerShown: true, title: `📍 ${location.name}` }} />
       <SyncStatusBar />
       <Text style={ui.mute}>{label ? `Label ${label}` : 'No Label yet: scan a Blank label to attach one'}</Text>

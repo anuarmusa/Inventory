@@ -26,7 +26,7 @@ export default function Redo() {
   }
   const supplyId = choice && 'supplyId' in choice ? choice.supplyId : null;
   return (
-    <ScrollView style={{ backgroundColor: '#fff' }} contentContainerStyle={[ui.screen, { paddingTop: 16 }]} keyboardShouldPersistTaps="handled">
+    <ScrollView style={{ backgroundColor: '#f3f6fa' }} contentContainerStyle={[ui.screen, { paddingTop: 16 }]} keyboardShouldPersistTaps="handled">
       <Stack.Screen options={{ headerShown: true, title: 'Redo' }} />
       <Text style={ui.body}>{item.text}</Text>
       <Text style={ui.label}>Which Supply was it really?</Text>

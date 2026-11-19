@@ -1,5 +1,5 @@
 import { randomInt, randomUUID } from 'node:crypto';
-import { and, desc, eq, gt, isNull, lt } from 'drizzle-orm';
+import { and, desc, eq, gt, isNull, lt, ne } from 'drizzle-orm';
 import type { FastifyInstance, FastifyRequest } from 'fastify';
 import {
   DeviceName,
@@ -11,6 +11,7 @@ import {
   RedeemRequest,
   type RedeemResponse,
 } from '@inventory/shared';
+import { DASHBOARD_DEVICE_ID } from '../web-routes.ts';
 import type { Db } from '../db/client.ts';
 import { devices, pairingCodes } from '../db/schema.ts';
 import { authenticateDevice, hashDeviceKey, newDeviceKey } from '../sync/auth.ts';
@@ -126,7 +127,8 @@ export function registerPairingRoutes(app: FastifyInstance, { db, publicAddress,
 
   /** The Device list for the download page. */
   app.get('/devices', async (): Promise<DeviceSummary[]> => {
-    const rows = await db.select().from(devices).orderBy(desc(devices.pairedAt));
+    // Phones only: the dashboard records as a Device of its own, but it isn't one to manage here.
+    const rows = await db.select().from(devices).where(ne(devices.id, DASHBOARD_DEVICE_ID)).orderBy(desc(devices.pairedAt));
     return rows.map(summary);
   });
 

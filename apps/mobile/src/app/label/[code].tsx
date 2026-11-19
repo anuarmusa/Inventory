@@ -32,7 +32,7 @@ export default function BlankLabel() {
     );
   }
   return (
-    <ScrollView style={{ backgroundColor: '#fff' }} contentContainerStyle={[ui.screen, { paddingTop: 16 }]} keyboardShouldPersistTaps="handled">
+    <ScrollView style={{ backgroundColor: '#f3f6fa' }} contentContainerStyle={[ui.screen, { paddingTop: 16 }]} keyboardShouldPersistTaps="handled">
       <Stack.Screen options={{ headerShown: true, title: `Blank label ${code}` }} />
       {step === 'choose' && (
         <>

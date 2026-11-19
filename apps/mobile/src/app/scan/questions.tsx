@@ -40,7 +40,7 @@ export default function Questions() {
 
   const remaining = basket.lines.filter((l) => !l.identified || !l.expiryAnswered).length;
   return (
-    <ScrollView style={{ backgroundColor: '#fff' }} contentContainerStyle={[ui.screen, { paddingTop: 48 }]} keyboardShouldPersistTaps="handled">
+    <ScrollView style={{ backgroundColor: '#f3f6fa' }} contentContainerStyle={[ui.screen, { paddingTop: 48 }]} keyboardShouldPersistTaps="handled">
       <Text style={ui.mute}>{remaining === 1 ? 'Last question' : `${remaining} lines to set up`}</Text>
       {question.kind === 'new_product' && <NewProductQuestion key={line.code} line={line} />}
       {question.kind === 'weighed' && <WeighedQuestion key={line.code} line={line} />}

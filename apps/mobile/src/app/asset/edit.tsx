@@ -39,7 +39,7 @@ export default function EditAsset() {
     ]);
 
   return (
-    <ScrollView style={{ backgroundColor: '#fff' }} contentContainerStyle={[ui.screen, { paddingTop: 16 }]} keyboardShouldPersistTaps="handled">
+    <ScrollView style={{ backgroundColor: '#f3f6fa' }} contentContainerStyle={[ui.screen, { paddingTop: 16 }]} keyboardShouldPersistTaps="handled">
       <Stack.Screen options={{ headerShown: true, title: existing ? `Edit ${existing.name}` : 'New Asset' }} />
       {label && <Text style={ui.mute}>Label {label} will be attached to it.</Text>}
       <TextField label="Name" value={form.name} onChange={(v) => set('name', v)} placeholder='e.g. Samsung 55" TV' />

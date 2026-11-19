@@ -32,7 +32,7 @@ export default function Checking() {
   };
 
   return (
-    <ScrollView style={{ backgroundColor: '#fff' }} contentContainerStyle={[ui.screen, { paddingTop: 16 }]}>
+    <ScrollView style={{ backgroundColor: '#f3f6fa' }} contentContainerStyle={[ui.screen, { paddingTop: 16 }]}>
       <Stack.Screen options={{ headerShown: true, title: 'Needs checking' }} />
       <SyncStatusBar />
       {open.length === 0 && <Text style={ui.mute}>Nothing needs checking.</Text>}

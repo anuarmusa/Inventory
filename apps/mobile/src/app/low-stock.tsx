@@ -10,7 +10,7 @@ export default function LowStock() {
   return (
     <ListScreen title="Low stock" empty="Nothing is low.">
       {items.map(({ supply, onHand }) => (
-        <ListRow key={supply.id} title={supply.name} detail={`Minimum ${supply.minimum} ${supply.unit}`} badge={`${onHand} left`} href={{ pathname: '/supply/[id]', params: { id: supply.id } }} />
+        <ListRow key={supply.id} icon="trending-down" tone="warn" title={supply.name} detail={`Minimum ${supply.minimum} ${supply.unit}`} badge={`${onHand} left`} href={{ pathname: '/supply/[id]', params: { id: supply.id } }} />
       ))}
     </ListScreen>
   );

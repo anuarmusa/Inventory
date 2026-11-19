@@ -32,7 +32,7 @@ export default function SupplyPage() {
   }
   const { supply } = d;
   return (
-    <ScrollView style={{ backgroundColor: '#fff' }} contentContainerStyle={[ui.screen, { paddingTop: 16 }]}>
+    <ScrollView style={{ backgroundColor: '#f3f6fa' }} contentContainerStyle={[ui.screen, { paddingTop: 16 }]}>
       <Stack.Screen options={{ headerShown: true, title: supply.name }} />
       <SyncStatusBar />
       {supply.deletedAt && (

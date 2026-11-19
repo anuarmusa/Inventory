@@ -1,10 +1,10 @@
 import { randomUUID } from 'expo-crypto';
-import { router, Stack } from 'expo-router';
+import { router } from 'expo-router';
 import { useState } from 'react';
 import { Alert, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
-import { useSession } from '../session/SessionProvider';
+import { useSession } from '../../session/SessionProvider';
 import { canDeleteCategory, canDeleteLocation, liveCategories, liveLocations } from '@inventory/shared';
-import { colors, ui } from '../ui/styles';
+import { colors, ui } from '../../ui/styles';
 
 type Kind = 'location' | 'category';
 
@@ -12,8 +12,7 @@ type Kind = 'location' | 'category';
 export default function Settings() {
   const { inventory, record, session } = useSession();
   return (
-    <ScrollView style={{ backgroundColor: '#fff' }} contentContainerStyle={[ui.screen, { paddingTop: 16 }]} keyboardShouldPersistTaps="handled">
-      <Stack.Screen options={{ headerShown: true, title: 'Settings' }} />
+    <ScrollView style={{ backgroundColor: '#f3f6fa' }} contentContainerStyle={[ui.screen, { paddingTop: 16 }]} keyboardShouldPersistTaps="handled">
       <List kind="location" title="Locations" items={liveLocations(inventory)} canDelete={(id) => canDeleteLocation(inventory, id)} record={record} />
       <List kind="category" title="Categories" items={liveCategories(inventory)} canDelete={(id) => canDeleteCategory(inventory, id)} record={record} />
       <Text style={styles.heading}>This phone</Text>

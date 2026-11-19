@@ -1,3 +1,4 @@
+import { CircleAlert, History, Hourglass, type LucideIcon, ShoppingCart, TrendingDown, Tv, Wallet } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import {
   type CheckItem,
@@ -69,11 +70,24 @@ export function Overview({ household }: { household: Household }) {
   return (
     <div className="overview">
       <main className="main">
-        <h1>Our home</h1>
+        <header className="hero">
+          <div>
+            <p className="hello">{greeting()}</p>
+            <h1>Our home</h1>
+          </div>
+        </header>
+        <div className="kpis">
+          <Kpi icon={ShoppingCart} tone="blue" label="To buy" value={buy.length} />
+          <Kpi icon={TrendingDown} tone="amber" label="Low stock" value={low.length} />
+          <Kpi icon={Hourglass} tone="rose" label="Near expiry" value={near.length} />
+          <Kpi icon={Wallet} tone="purple" label="Asset value" value={ringgit(totalAssetValueSen(Object.values(inventory.assets)))} />
+        </div>
         {error && <p className="error">{error}</p>}
         {checking.length > 0 && (
           <section className="card checking">
-            <h2>⚠️ Needs checking ({checking.length})</h2>
+            <h2>
+              <CircleAlert size={18} className="ic bad" /> Needs checking ({checking.length})
+            </h2>
             {checking.map((item) => (
               <CheckingItem key={item.mismatch.id} item={item} household={household} />
             ))}
@@ -81,7 +95,9 @@ export function Overview({ household }: { household: Household }) {
         )}
         <div className="grid2">
           <section className="card">
-            <h2>Shopping list</h2>
+            <h2>
+              <ShoppingCart size={18} className="ic blue" /> Shopping list
+            </h2>
             <table>
               <thead>
                 <tr>
@@ -117,7 +133,9 @@ export function Overview({ household }: { household: Household }) {
             </table>
           </section>
           <section className="card">
-            <h2>Near expiry</h2>
+            <h2>
+              <Hourglass size={18} className="ic rose" /> Near expiry
+            </h2>
             <table>
               <thead>
                 <tr>
@@ -151,7 +169,9 @@ export function Overview({ household }: { household: Household }) {
             </table>
           </section>
           <section className="card">
-            <h2>Low stock</h2>
+            <h2>
+              <TrendingDown size={18} className="ic amber" /> Low stock
+            </h2>
             <table>
               <thead>
                 <tr>
@@ -181,7 +201,9 @@ export function Overview({ household }: { household: Household }) {
             </table>
           </section>
           <section className="card">
-            <h2>Assets · {ringgit(totalAssetValueSen(Object.values(inventory.assets)))}</h2>
+            <h2>
+              <Tv size={18} className="ic purple" /> Assets · {ringgit(totalAssetValueSen(Object.values(inventory.assets)))}
+            </h2>
             <table>
               <thead>
                 <tr>
@@ -213,9 +235,29 @@ export function Overview({ household }: { household: Household }) {
         </div>
       </main>
       <aside className="activity">
-        <h2>Recent activity</h2>
+        <h2>
+          <History size={18} className="ic" /> Recent activity
+        </h2>
         <Activity entries={activity} household={household} />
       </aside>
+    </div>
+  );
+}
+
+function greeting(now = new Date()): string {
+  const h = now.getHours();
+  return h < 12 ? 'Good morning' : h < 18 ? 'Good afternoon' : 'Good evening';
+}
+
+/** A colourful summary card: icon, value and label. */
+function Kpi({ icon: Icon, tone, label, value }: { icon: LucideIcon; tone: 'blue' | 'amber' | 'rose' | 'purple'; label: string; value: number | string }) {
+  return (
+    <div className={`kpi ${tone}`}>
+      <span className="kpi-icon">
+        <Icon size={20} />
+      </span>
+      <span className="kpi-value">{value}</span>
+      <span className="kpi-label">{label}</span>
     </div>
   );
 }
@@ -308,12 +350,11 @@ export function Activity({ entries, household }: { entries: HistoryEntry[]; hous
       <tbody>
         {entries.map((e) => (
           <tr key={e.id}>
-            <td className="mute when">{new Date(e.when).toLocaleString('en-GB', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}</td>
             <td>
               <span className={e.undone || e.fixed ? 'struck' : undefined}>{e.text}</span>
               {e.fixed && <div className="fixed">{e.fixed}</div>}
               <div className="mute small">
-                {e.deviceName}
+                {e.deviceName} · {new Date(e.when).toLocaleString('en-GB', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
                 {e.undone ? ` · ${e.undone}` : ''}
                 {e.skipped ? ' · skipped' : ''}
               </div>
