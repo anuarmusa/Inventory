@@ -1,5 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import { Tabs } from 'expo-router';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { IconName } from '../../ui/kit';
 import { colors } from '../../ui/styles';
 
@@ -13,12 +14,20 @@ const tab = (title: string, icon: IconName, iconOn: IconName, headerShown = true
 
 /** The main screens, one tap apart: Home, Supplies, Assets, Activity and Settings. */
 export default function TabsLayout() {
+  // Leave room for Android's navigation buttons or gesture bar below the tabs.
+  const insets = useSafeAreaInsets();
   return (
     <Tabs
       screenOptions={{
         tabBarActiveTintColor: colors.accent,
         tabBarInactiveTintColor: colors.mute,
-        tabBarStyle: { backgroundColor: colors.card, borderTopColor: colors.line, height: 64, paddingBottom: 8, paddingTop: 6 },
+        tabBarStyle: {
+          backgroundColor: colors.card,
+          borderTopColor: colors.line,
+          height: 60 + insets.bottom,
+          paddingBottom: insets.bottom + 6,
+          paddingTop: 6,
+        },
         tabBarLabelStyle: { fontSize: 12, fontWeight: '600' },
         headerStyle: { backgroundColor: colors.bg },
         headerShadowVisible: false,

@@ -1,5 +1,6 @@
 import { createContext, type ReactNode, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { colors } from './styles';
 
 export interface ToastMessage {
@@ -17,6 +18,7 @@ const Context = createContext<((toast: ToastMessage) => void) | null>(null);
 export function ToastProvider({ children }: { children: ReactNode }) {
   const [toast, setToast] = useState<ToastMessage | null>(null);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const insets = useSafeAreaInsets();
 
   const show = useCallback((next: ToastMessage) => {
     if (timer.current) clearTimeout(timer.current);
@@ -30,7 +32,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
     <Context.Provider value={value}>
       {children}
       {toast && (
-        <View style={styles.toast} accessibilityLiveRegion="polite">
+        <View style={[styles.toast, { bottom: 32 + insets.bottom }]} accessibilityLiveRegion="polite">
           <Text style={styles.text}>{toast.text}</Text>
           {toast.actionLabel && (
             <Pressable

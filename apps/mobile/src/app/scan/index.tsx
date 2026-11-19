@@ -1,6 +1,7 @@
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import { router, useFocusEffect } from 'expo-router';
 import { useCallback, useRef, useState } from 'react';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Alert, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSession } from '../../session/SessionProvider';
 import { addScan, lineQuantity, supplyOf } from '../../scan/basket';
@@ -20,6 +21,7 @@ export default function Scan() {
   const { inventory } = useSession();
   const { basket, update, lookUp, clear } = useBasket();
   const [permission, requestPermission] = useCameraPermissions();
+  const insets = useSafeAreaInsets();
   const [choosing, setChoosing] = useState<Scanned | null>(null);
   const [message, setMessage] = useState<{ text: string; warn: boolean } | null>(null);
   const last = useRef<{ text: string; at: number } | null>(null);
@@ -105,7 +107,7 @@ export default function Scan() {
         barcodeScannerSettings={{ barcodeTypes: ['ean13', 'ean8', 'upc_a', 'upc_e', 'qr'] }}
         onBarcodeScanned={onScanned}
       />
-      <View style={styles.panel}>
+      <View style={[styles.panel, { paddingBottom: 16 + insets.bottom }]}>
         {choosing ? (
           <Choose
             scanned={choosing}

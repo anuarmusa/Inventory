@@ -1,6 +1,7 @@
 import { type Action, ActionBody } from '@inventory/shared';
 import { randomUUID } from 'expo-crypto';
 import { Redirect, router } from 'expo-router';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useState } from 'react';
 import { Alert, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import {
@@ -28,6 +29,7 @@ const UNDO_MS = 6_000;
 export default function Review() {
   const { inventory, record, dropUnsent } = useSession();
   const toast = useToast();
+  const insets = useSafeAreaInsets();
   const { basket, update, clear } = useBasket();
   const [open, setOpen] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
@@ -121,7 +123,7 @@ export default function Review() {
           );
         })}
       </ScrollView>
-      <View style={{ padding: 16, gap: 8, borderTopWidth: 1, borderTopColor: colors.line }}>
+      <View style={{ padding: 16, paddingBottom: 16 + insets.bottom, gap: 8, borderTopWidth: 1, borderTopColor: colors.line }}>
         {missing.length > 0 && <Text style={{ color: colors.bad }}>Choose a Location for every line first.</Text>}
         <Pressable
           style={[ui.primary, (missing.length > 0 || saving) && { opacity: 0.4 }]}
